@@ -1,0 +1,646 @@
+{
+ "format": "toneical-factory", "version": 1,
+ "categories": ["Clean", "Rhythm", "Lead", "Legends", "Nu-Metal", "Ambient & FX", "Utility"],
+ "presets": [
+  {
+   "name": "Clean Sparkle", "category": "Clean",
+   "description": "Compressed, chorused Blackface clean with delay and a roomy reverb.",
+   "chain": [
+    {"type": "comp", "params": {"thresh": -28, "ratio": 3, "attack": 12, "level": 0, "blend": 55}},
+    {"type": "tubeamp", "params": {"channel": 0, "gain": 4.5, "bass": 5, "mid": 4, "treble": 6, "presence": 6, "master": 2.3}},
+    {"type": "cabsim", "params": {"cab": 3}},
+    {"type": "gate", "params": {"margin": 9, "release": 250}},
+    {"type": "chorus", "params": {"rate": 0.7, "depth": 4, "mix": 35}},
+    {"type": "delay", "params": {"time": 420, "fb": 28, "mix": 18}},
+    {"type": "reverb", "params": {"size": 60, "mix": 22}}
+   ]
+  },
+  {
+   "name": "Glassy Funk", "category": "Clean",
+   "description": "Snappy compressed clean for funk rhythm: fast compressor, bright small combo, short room.",
+   "chain": [
+    {"type": "comp", "params": {"thresh": -32, "ratio": 6, "attack": 4, "release": 100, "level": 2, "blend": 75}},
+    {"type": "tubeamp", "params": {"channel": 0, "gain": 4, "bass": 4, "mid": 5, "treble": 7, "presence": 6, "master": 3.9}},
+    {"type": "cabsim", "params": {"cab": 4}},
+    {"type": "gate", "params": {"margin": 9, "release": 120}},
+    {"type": "reverb", "params": {"size": 25, "mix": 10, "damp": 50}}
+   ]
+  },
+  {
+   "name": "Neo-Soul Clean", "category": "Clean",
+   "description": "Smooth neo-soul clean: the Clone Kentaur at low gain with the treble up, into a big clean amp, a touch of compression and a warm room.",
+   "chain": [
+    {"type": "comp", "params": {"thresh": -28, "ratio": 3, "attack": 15, "blend": 50}},
+    {"type": "klon", "params": {"gain": 3, "treble": 6, "level": 2}},
+    {"type": "tubeamp", "params": {"channel": 0, "gain": 5.5, "bass": 5, "mid": 6, "treble": 6, "presence": 5, "master": -3.2}},
+    {"type": "cabsim", "params": {"cab": 3}},
+    {"type": "gate", "params": {"margin": 9, "release": 250}},
+    {"type": "reverb", "params": {"size": 50, "mix": 22, "damp": 40, "predelay": 25}}
+   ]
+  },
+  {
+   "name": "Chime & Tremolo", "category": "Clean",
+   "description": "Vox-style chime with a classic amp tremolo.",
+   "chain": [
+    {"type": "tubeamp", "params": {"channel": 3, "gain": 4, "bass": 4, "mid": 6, "treble": 6.5, "presence": 5, "master": 3.2}},
+    {"type": "cabsim", "params": {"cab": 3}},
+    {"type": "gate", "params": {"margin": 10, "release": 150}},
+    {"type": "trem", "params": {"rate": 5.5, "depth": 55}},
+    {"type": "reverb", "params": {"size": 45, "mix": 22}}
+   ]
+  },
+  {
+   "name": "Blues Breakup", "category": "Clean",
+   "description": "Edge-of-breakup clean nudged by the Exotic BB Preamp at low gain: dig in and it growls, pick softly and it cleans up.",
+   "chain": [
+    {"type": "bb", "params": {"gain": 3, "tone": 5, "level": 3}},
+    {"type": "tubeamp", "params": {"channel": 0, "gain": 6.5, "bass": 5, "mid": 6, "treble": 6, "presence": 5, "master": -6.1}},
+    {"type": "cabsim", "params": {"cab": 4}},
+    {"type": "gate", "params": {"margin": 9, "release": 200}},
+    {"type": "reverb", "params": {"size": 40, "mix": 20, "damp": 45}}
+   ]
+  },
+  {
+   "name": "Chicken Pickin'", "category": "Clean",
+   "description": "Country clean: fast compressor for the snap, a bright small combo and a single 110 ms slapback repeat. Play hybrid picking near the bridge.",
+   "chain": [
+    {"type": "comp", "params": {"thresh": -30, "ratio": 6, "attack": 2, "release": 90, "level": 1, "blend": 80}},
+    {"type": "tubeamp", "params": {"channel": 0, "gain": 4, "bass": 4, "mid": 6, "treble": 7, "presence": 6, "master": 3.8}},
+    {"type": "cabsim", "params": {"cab": 4}},
+    {"type": "gate", "params": {"margin": 9, "release": 150}},
+    {"type": "delay", "params": {"time": 110, "fb": 0, "mix": 28, "tone": 5000, "mod": 0}},
+    {"type": "reverb", "params": {"size": 25, "mix": 8}}
+   ]
+  },
+  {
+   "name": "Chimey Edge", "category": "Clean",
+   "description": "A captured AC Top Boost just starting to break up, nudged by the Seemore 805 at low gain - jangly chords that bite when you dig in.",
+   "chain": [
+    {"type": "sd805", "params": {"gain": 3, "tone": 5, "level": 3}},
+    {"type": "realamp", "params": {"channel": 4, "gain": 4, "bass": 5, "mid": 5, "treble": 5, "presence": 5, "master": 1.5}},
+    {"type": "cabsim", "params": {"cab": 3}},
+    {"type": "gate", "params": {"margin": 9, "release": 200}},
+    {"type": "reverb", "params": {"size": 40, "mix": 16}}
+   ]
+  },
+  {
+   "name": "Classic Crunch", "category": "Rhythm",
+   "description": "A captured British crunch channel into a 4x12 - classic rock rhythm. The Green Screamer is ready (off) as a solo boost.",
+   "chain": [
+    {"type": "ts808", "bypassed": true, "params": {"drive": 1, "tone": 5, "level": 6}},
+    {"type": "realamp", "params": {"channel": 1, "gain": 5, "bass": 5, "mid": 5, "treble": 5, "presence": 5, "master": 0}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 10, "release": 150}},
+    {"type": "delay", "bypassed": true, "params": {"time": 360, "fb": 25, "mix": 18}},
+    {"type": "reverb", "params": {"size": 40, "mix": 12}}
+   ]
+  },
+  {
+   "name": "Brown Sound", "category": "Rhythm",
+   "description": "Late-70s Californian hot-rodded Plexi style: the crunch capture pushed hard, a slow phaser and a plate-ish reverb.",
+   "chain": [
+    {"type": "realamp", "params": {"channel": 1, "gain": 7, "bass": 6, "mid": 5, "treble": 5.5, "presence": 4.5, "master": 2}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 10, "release": 150}},
+    {"type": "phaser", "params": {"rate": 0.35, "depth": 6, "fb": 20, "stages": 0, "mix": 45}},
+    {"type": "delay", "params": {"time": 330, "fb": 15, "mix": 10}},
+    {"type": "reverb", "params": {"size": 55, "mix": 18, "damp": 30}}
+   ]
+  },
+  {
+   "name": "Hard Rock Rhythm", "category": "Rhythm",
+   "description": "Late-80s hard-rock rhythm: the British crunch capture with the mids up, pushed by a Baby SD-1 at low drive so chords stay tight.",
+   "chain": [
+    {"type": "sd1", "params": {"drive": 3, "tone": 5, "level": 4}},
+    {"type": "realamp", "params": {"channel": 1, "gain": 5.5, "bass": 5, "mid": 6, "treble": 5, "presence": 5, "master": -1.6}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 11, "release": 150}},
+    {"type": "reverb", "params": {"size": 35, "mix": 10}}
+   ]
+  },
+  {
+   "name": "Grunge Distortion", "category": "Rhythm",
+   "description": "Early-90s grunge: a Baby DS-1 into a captured clean Twin, mids up - raw and loud. Chorus is ready (off) for the verses.",
+   "chain": [
+    {"type": "ds1", "params": {"dist": 7, "tone": 4, "level": 0}},
+    {"type": "realamp", "params": {"channel": 0, "gain": 5, "bass": 5, "mid": 6, "treble": 5, "presence": 5, "master": -9.4}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 11, "release": 150}},
+    {"type": "chorus", "bypassed": true, "params": {"rate": 0.9, "depth": 7, "mix": 45}},
+    {"type": "reverb", "params": {"size": 30, "mix": 8}}
+   ]
+  },
+  {
+   "name": "Thrash Rhythm", "category": "Rhythm",
+   "description": "Mid-80s thrash: Green Screamer as a tight boost into the captured US high-gain head, mids scooped with the EQ (low up, 750 Hz down, 2.2 kHz up).",
+   "chain": [
+    {"type": "ts808", "params": {"drive": 0, "tone": 6, "level": 8}},
+    {"type": "realamp", "params": {"channel": 5, "gain": 4.5, "bass": 6, "mid": 4, "treble": 5.5, "presence": 5, "master": 1}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 14, "release": 60}},
+    {"type": "eq", "params": {"low": 2, "lomid": -3, "himid": 2, "hpf": 60}},
+    {"type": "reverb", "params": {"size": 25, "mix": 6}}
+   ]
+  },
+  {
+   "name": "Tight Metal", "category": "Rhythm",
+   "description": "Modern metal: the Precise Drive (drive at 0, level up - the classic metal boost) into the captured high-gain head, tight 4x12 and a fast gate.",
+   "chain": [
+    {"type": "precision", "params": {"drive": 0, "bright": 6, "level": 8}},
+    {"type": "realamp", "params": {"channel": 5, "gain": 5.5, "bass": 5, "mid": 4.5, "treble": 5, "presence": 5.5, "master": 2.4}},
+    {"type": "cabsim", "params": {"cab": 2}},
+    {"type": "gate", "params": {"margin": 14, "release": 60}},
+    {"type": "eq", "params": {"lomid": -2, "hpf": 70}},
+    {"type": "reverb", "params": {"size": 30, "mix": 8}}
+   ]
+  },
+  {
+   "name": "Modern Djent", "category": "Rhythm",
+   "description": "Palm-muted, very tight modern metal: Fortune Grind boost into the high-gain capture, low end cleaned up before it gets fuzzy.",
+   "chain": [
+    {"type": "grind", "params": {"grind": 6, "level": 6}},
+    {"type": "realamp", "params": {"channel": 5, "gain": 6, "bass": 4.5, "mid": 5, "treble": 5.5, "presence": 6, "master": 2.3}},
+    {"type": "cabsim", "params": {"cab": 2}},
+    {"type": "gate", "params": {"margin": 16, "release": 40}},
+    {"type": "eq", "params": {"lomid": -3, "hpf": 85, "high": 1}}
+   ]
+  },
+  {
+   "name": "Swedish Chainsaw", "category": "Rhythm",
+   "description": "Old-school Swedish death metal: the Baby HM-2 with every knob on 10 into a crunch amp - the famous buzzsaw.",
+   "chain": [
+    {"type": "hm2", "params": {"setting": 0, "dist": 5, "level": 0}},
+    {"type": "realamp", "params": {"channel": 1, "gain": 3.5, "bass": 5, "mid": 5, "treble": 5, "presence": 5, "master": -2.9}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 14, "release": 70}},
+    {"type": "reverb", "params": {"size": 30, "mix": 8}}
+   ]
+  },
+  {
+   "name": "Zone Wall", "category": "Rhythm",
+   "description": "A Baby MT-2 (the 90s metal-distortion box) into a clean amp - thick, compressed, scooped: love it or hate it.",
+   "chain": [
+    {"type": "mt2", "params": {"dist": 5, "tone": 5, "level": 0}},
+    {"type": "realamp", "params": {"channel": 0, "gain": 5, "bass": 5, "mid": 5, "treble": 4.5, "presence": 5, "master": -10.9}},
+    {"type": "cabsim", "params": {"cab": 2}},
+    {"type": "gate", "params": {"margin": 14, "release": 60}},
+    {"type": "reverb", "params": {"size": 25, "mix": 6}}
+   ]
+  },
+  {
+   "name": "Garage Rock", "category": "Rhythm",
+   "description": "A Baby OS-2 at mid drive into a captured AC Top Boost - trashy, chimey garage-rock chords.",
+   "chain": [
+    {"type": "os2", "params": {"drive": 6, "tone": 5, "level": 0}},
+    {"type": "realamp", "params": {"channel": 4, "gain": 4.5, "bass": 5, "mid": 5, "treble": 5, "presence": 5, "master": -0.3}},
+    {"type": "cabsim", "params": {"cab": 3}},
+    {"type": "gate", "params": {"margin": 11, "release": 150}},
+    {"type": "reverb", "params": {"size": 30, "mix": 10}}
+   ]
+  },
+  {
+   "name": "Rodent Punk", "category": "Rhythm",
+   "description": "The Rodent (RAT-style distortion) with the filter at 10 o'clock into a lightly crunching amp - the classic punk and indie wall, open and loud.",
+   "chain": [
+    {"type": "rat", "params": {"dist": 5, "filter": 3.5, "level": 0}},
+    {"type": "realamp", "params": {"channel": 1, "gain": 2.5, "bass": 5, "mid": 5, "treble": 5, "presence": 5, "master": -0.5}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 12, "release": 150}},
+    {"type": "reverb", "params": {"size": 30, "mix": 8}}
+   ]
+  },
+  {
+   "name": "Fuzz Wall", "category": "Rhythm",
+   "description": "The Little Big Fluff (Muff-style fuzz) into a clean amp - a wall of sustain.",
+   "chain": [
+    {"type": "muff", "params": {"sustain": 6, "tone": 5, "level": 0}},
+    {"type": "realamp", "params": {"channel": 0, "gain": 5, "bass": 5, "mid": 5, "treble": 5, "presence": 5, "master": -2.4}},
+    {"type": "cabsim", "params": {"cab": 3}},
+    {"type": "gate", "params": {"margin": 11, "release": 150}},
+    {"type": "reverb", "params": {"size": 50, "mix": 16}}
+   ]
+  },
+  {
+   "name": "Stoner Doom", "category": "Rhythm",
+   "description": "The Little Big Fluff, dark and dimed, into a low-gain crunch with heavy bass - slow and huge.",
+   "chain": [
+    {"type": "muff", "params": {"sustain": 8, "tone": 3, "level": 0}},
+    {"type": "realamp", "params": {"channel": 1, "gain": 3, "bass": 7, "mid": 5, "treble": 4.5, "presence": 4, "master": -4.5}},
+    {"type": "cabsim", "params": {"cab": 0, "thump": 2}},
+    {"type": "gate", "params": {"margin": 12, "release": 150}},
+    {"type": "reverb", "params": {"size": 45, "mix": 12, "damp": 60}}
+   ]
+  },
+  {
+   "name": "Hot Lead", "category": "Lead",
+   "description": "Singing high-gain lead: Green Screamer boost (low drive, level up) into the captured British lead channel with the mids forward, a 4x12, gentle gate and delay.",
+   "chain": [
+    {"type": "ts808", "params": {"drive": 1.5, "tone": 5, "level": 8}},
+    {"type": "realamp", "params": {"channel": 2, "gain": 5, "bass": 4.5, "mid": 6, "treble": 5, "presence": 5, "master": -0.5}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 9, "release": 250}},
+    {"type": "delay", "params": {"time": 400, "fb": 30, "mix": 20, "tone": 3000, "mod": 2}},
+    {"type": "reverb", "params": {"size": 50, "mix": 14, "damp": 45}}
+   ]
+  },
+  {
+   "name": "Texas Blues Lead", "category": "Lead",
+   "description": "Texas blues: Green Screamer as a boost (low drive, level high) into a loud captured Twin, bright and punchy.",
+   "chain": [
+    {"type": "ts808", "params": {"drive": 2, "tone": 6, "level": 9}},
+    {"type": "realamp", "params": {"channel": 0, "gain": 7, "bass": 6, "mid": 5.5, "treble": 5.5, "presence": 5, "master": -9.1}},
+    {"type": "cabsim", "params": {"cab": 4}},
+    {"type": "gate", "params": {"margin": 9, "release": 250}},
+    {"type": "reverb", "params": {"size": 40, "mix": 20, "damp": 35}}
+   ]
+  },
+  {
+   "name": "Purple Fuzz Lead", "category": "Lead",
+   "description": "Late-60s psychedelic lead: the Little Big Fluff into a crunching British amp with the mids up. Roll back your guitar volume to clean it up.",
+   "chain": [
+    {"type": "muff", "params": {"sustain": 6, "tone": 6, "level": 0}},
+    {"type": "realamp", "params": {"channel": 1, "gain": 4.5, "bass": 5, "mid": 6, "treble": 5, "presence": 6, "master": -2.8}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 9, "release": 250}},
+    {"type": "reverb", "params": {"size": 35, "mix": 12}}
+   ]
+  },
+  {
+   "name": "Floating Fuzz Solo", "category": "Lead",
+   "description": "Long, floating 70s prog solos: the Little Big Fluff into a loud, clean, mid-focused amp, slow chorus, long delay and hall.",
+   "chain": [
+    {"type": "muff", "params": {"sustain": 6, "tone": 5, "level": 0}},
+    {"type": "realamp", "params": {"channel": 0, "gain": 6, "bass": 5, "mid": 6, "treble": 5, "presence": 5, "master": -3.7}},
+    {"type": "cabsim", "params": {"cab": 3}},
+    {"type": "gate", "params": {"margin": 9, "release": 300}},
+    {"type": "chorus", "params": {"rate": 0.5, "depth": 3, "mix": 25}},
+    {"type": "delay", "params": {"time": 440, "fb": 35, "mix": 24, "tone": 3500}},
+    {"type": "reverb", "params": {"size": 75, "mix": 25, "damp": 40, "predelay": 30}}
+   ]
+  },
+  {
+   "name": "Hard Rock Lead", "category": "Lead",
+   "description": "Late-80s hard-rock lead: a Baby SD-1 pushing the captured British lead channel with the mids up, plus a touch of delay.",
+   "chain": [
+    {"type": "sd1", "params": {"drive": 4, "tone": 5, "level": 5}},
+    {"type": "realamp", "params": {"channel": 2, "gain": 5.5, "bass": 5, "mid": 6, "treble": 5, "presence": 5, "master": -0.9}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 9, "release": 250}},
+    {"type": "delay", "params": {"time": 380, "fb": 22, "mix": 16}},
+    {"type": "reverb", "params": {"size": 40, "mix": 12}}
+   ]
+  },
+  {
+   "name": "Transparent Lead", "category": "Lead",
+   "description": "The Clone Kentaur at higher gain stacked into the crunch capture: more of the amp, smooth and touch-sensitive.",
+   "chain": [
+    {"type": "klon", "params": {"gain": 6, "treble": 5.5, "level": 4}},
+    {"type": "realamp", "params": {"channel": 1, "gain": 5, "bass": 5, "mid": 5, "treble": 5, "presence": 5, "master": -2.6}},
+    {"type": "cabsim", "params": {"cab": 3}},
+    {"type": "gate", "params": {"margin": 9, "release": 250}},
+    {"type": "delay", "params": {"time": 420, "fb": 28, "mix": 18}},
+    {"type": "reverb", "params": {"size": 45, "mix": 14}}
+   ]
+  },
+  {
+   "name": "BB Preamp Lead", "category": "Lead",
+   "description": "The Exotic BB Preamp as the main drive into an amp that's only just breaking up - open, raw blues-rock that follows your picking.",
+   "chain": [
+    {"type": "bb", "params": {"gain": 6.5, "tone": 5.5, "level": 2}},
+    {"type": "realamp", "params": {"channel": 1, "gain": 3.5, "bass": 5, "mid": 5, "treble": 5, "presence": 5, "master": -3.3}},
+    {"type": "cabsim", "params": {"cab": 3}},
+    {"type": "gate", "params": {"margin": 9, "release": 250}},
+    {"type": "delay", "params": {"time": 380, "fb": 22, "mix": 14, "tone": 3000}},
+    {"type": "reverb", "params": {"size": 45, "mix": 14}}
+   ]
+  },
+  {
+   "name": "Proteen Lead", "category": "Lead",
+   "description": "The green (more gain) side of the Proteen Dual Drive into a crunch amp - creamy, mid-rich boutique lead.",
+   "chain": [
+    {"type": "protein", "params": {"setting": 1, "drive": 6, "tone": 5, "level": 2}},
+    {"type": "realamp", "params": {"channel": 1, "gain": 4, "bass": 5, "mid": 5.5, "treble": 5, "presence": 5, "master": -4.2}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 9, "release": 250}},
+    {"type": "delay", "params": {"time": 420, "fb": 26, "mix": 18}},
+    {"type": "reverb", "params": {"size": 45, "mix": 14}}
+   ]
+  },
+  {
+   "name": "Bump & Grind Lead", "category": "Lead",
+   "description": "The MXD Bad Mod 77 with the bass bump on, pushing the hot British lead capture - thick, aggressive solos.",
+   "chain": [
+    {"type": "m77", "params": {"setting": 1, "gain": 3, "tone": 5, "level": 6}},
+    {"type": "realamp", "params": {"channel": 3, "gain": 5, "bass": 5, "mid": 5.5, "treble": 5, "presence": 5, "master": -0.1}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 10, "release": 200}},
+    {"type": "delay", "params": {"time": 400, "fb": 25, "mix": 16}},
+    {"type": "reverb", "params": {"size": 45, "mix": 12}}
+   ]
+  },
+  {
+   "name": "Metal Lead", "category": "Lead",
+   "description": "Boosted high-gain lead with the treble up, delay and hall - for cutting metal solos.",
+   "chain": [
+    {"type": "ts808", "params": {"drive": 1, "tone": 6, "level": 9}},
+    {"type": "realamp", "params": {"channel": 5, "gain": 5.5, "bass": 5, "mid": 5.5, "treble": 6, "presence": 6, "master": 0.3}},
+    {"type": "cabsim", "params": {"cab": 0}},
+    {"type": "gate", "params": {"margin": 10, "release": 200}},
+    {"type": "delay", "params": {"time": 450, "fb": 30, "mix": 22}},
+    {"type": "reverb", "params": {"size": 55, "mix": 16}}
+   ]
+  },
+  {
+   "name": "Crazy Trane Lead", "category": "Lead",
+   "description": "Early-80s metal lead in the spirit of a famous train-themed solo: the XD '78 Distortion into a British crunch, plus delay.",
+   "chain": [
+    {"type": "mxr78", "params": {"dist": 6, "level": 3}},
+    {"type": "realamp", "params": {"channel": 1, "gain": 5.5, "bass": 5, "mid": 6, "treble": 5.5, "presence": 6, "master": -2.6}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 9, "release": 250}},
+    {"type": "delay", "params": {"time": 400, "fb": 25, "mix": 18}},
+    {"type": "reverb", "params": {"size": 45, "mix": 14}}
+   ]
+  },
+  {
+   "name": "Gary Moor - Still Got the Bluez", "category": "Legends",
+   "description": "Inspired by a famous Irish blues-rock player: Les Paul neck pickup into a British lead channel (gain 7, bass 6, middle 7, treble 6 as a start), smoothed by a Green Screamer, with delay. Lots of finger vibrato.",
+   "chain": [
+    {"type": "ts808", "params": {"drive": 2.5, "tone": 5, "level": 5}},
+    {"type": "realamp", "params": {"channel": 2, "gain": 5.5, "bass": 5.5, "mid": 6, "treble": 5, "presence": 5, "master": -0.4}},
+    {"type": "eq", "params": {"lpf": 7000}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 8, "release": 400}},
+    {"type": "delay", "params": {"time": 420, "fb": 22, "mix": 16, "tone": 3000}},
+    {"type": "reverb", "params": {"size": 55, "mix": 18, "damp": 40}}
+   ]
+  },
+  {
+   "name": "Gary Moor - Parisian Walkways", "category": "Legends",
+   "description": "Inspired by the same player's endless sustained note: high amp gain and finger vibrato, a light studio-style compressor, a plate-like reverb.",
+   "chain": [
+    {"type": "comp", "params": {"thresh": -30, "ratio": 3, "attack": 30, "release": 300, "blend": 45}},
+    {"type": "realamp", "params": {"channel": 3, "gain": 5, "bass": 5.5, "mid": 6, "treble": 5, "presence": 5, "master": -0.8}},
+    {"type": "eq", "params": {"lpf": 7500}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 7, "release": 500}},
+    {"type": "delay", "params": {"time": 500, "fb": 28, "mix": 16, "tone": 3200}},
+    {"type": "reverb", "params": {"size": 70, "mix": 26, "damp": 35, "predelay": 20}}
+   ]
+  },
+  {
+   "name": "Santanna - Singing Sustain", "category": "Legends",
+   "description": "Inspired by a Latin-rock legend: a mid-heavy singing lead (bass 5, mid 6+, treble 6 as a start), neck pickup.",
+   "chain": [
+    {"type": "comp", "params": {"thresh": -28, "ratio": 2.5, "attack": 25, "blend": 40}},
+    {"type": "realamp", "params": {"channel": 2, "gain": 5, "bass": 5, "mid": 7, "treble": 5, "presence": 4.5, "master": -1.8}},
+    {"type": "cabsim", "params": {"cab": 3}},
+    {"type": "gate", "params": {"margin": 8, "release": 400}},
+    {"type": "delay", "params": {"time": 380, "fb": 20, "mix": 12}},
+    {"type": "reverb", "params": {"size": 50, "mix": 22}}
+   ]
+  },
+  {
+   "name": "Brian Mae - Treble Booster", "category": "Legends",
+   "description": "Inspired by a famous queenly guitarist: a treble booster into a cranked AC Top Boost, booster as the main drive, short slapback delay.",
+   "chain": [
+    {"type": "boost", "params": {"gain": 12, "lowcut": 600, "bright": 1}},
+    {"type": "realamp", "params": {"channel": 4, "gain": 5.5, "bass": 5.5, "mid": 5.5, "treble": 5.5, "presence": 6, "master": -1.5}},
+    {"type": "cabsim", "params": {"cab": 3}},
+    {"type": "gate", "params": {"margin": 9, "release": 300}},
+    {"type": "delay", "params": {"time": 300, "fb": 20, "mix": 18}},
+    {"type": "reverb", "params": {"size": 40, "mix": 12}}
+   ]
+  },
+  {
+   "name": "Knopflair - Sultans Clean", "category": "Legends",
+   "description": "Inspired by a famous fingerpicking Strat player: position 4 into a clean Fender (volume 4, bass 5, middle 6, treble 7), light compression, a little reverb. Play it with your fingers.",
+   "chain": [
+    {"type": "comp", "params": {"thresh": -26, "ratio": 3, "attack": 10, "blend": 55}},
+    {"type": "tubeamp", "params": {"channel": 0, "gain": 4, "bass": 5, "mid": 6, "treble": 7, "presence": 6, "master": 1.3}},
+    {"type": "cabsim", "params": {"cab": 4}},
+    {"type": "gate", "params": {"margin": 9, "release": 200}},
+    {"type": "reverb", "params": {"size": 30, "mix": 12}}
+   ]
+  },
+  {
+   "name": "B.B. Kling - Lucy", "category": "Legends",
+   "description": "Inspired by the king of the blues: a mid-forward, slightly gritty clean with plenty of reverb. Neck pickup, sparse notes, wide vibrato.",
+   "chain": [
+    {"type": "tubeamp", "params": {"channel": 0, "gain": 7, "bass": 4, "mid": 8, "treble": 6, "presence": 4, "master": -5.2}},
+    {"type": "cabsim", "params": {"cab": 4}},
+    {"type": "gate", "params": {"margin": 9, "release": 250}},
+    {"type": "reverb", "params": {"size": 45, "mix": 28, "damp": 45}}
+   ]
+  },
+  {
+   "name": "Satchriani - Surfing", "category": "Legends",
+   "description": "Inspired by an instrumental rock virtuoso: a Baby DS-1 into a British amp with low EQ settings, short low-repeat delay, no reverb.",
+   "chain": [
+    {"type": "ds1", "params": {"dist": 6, "tone": 6, "level": 3}},
+    {"type": "realamp", "params": {"channel": 1, "gain": 4.5, "bass": 4, "mid": 4, "treble": 4.5, "presence": 6, "master": -2.8}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 10, "release": 200}},
+    {"type": "delay", "params": {"time": 280, "fb": 15, "mix": 15}}
+   ]
+  },
+  {
+   "name": "Zack Wild - Pinch Harmonics", "category": "Legends",
+   "description": "Inspired by a bearded metal guitarist: the XD '78 Distortion into a British lead channel with the mids pushed. Dig in for squealing pinch harmonics.",
+   "chain": [
+    {"type": "mxr78", "params": {"dist": 6, "level": 5}},
+    {"type": "realamp", "params": {"channel": 2, "gain": 4.5, "bass": 5.5, "mid": 6, "treble": 5, "presence": 6, "master": -1.7}},
+    {"type": "eq", "params": {"himid": 2, "hpf": 60}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 13, "release": 120}},
+    {"type": "reverb", "params": {"size": 35, "mix": 8}}
+   ]
+  },
+  {
+   "name": "Morrello - Raging Riffs", "category": "Legends",
+   "description": "Inspired by a famous rap-metal riff maker: British lead channel, bright, no reverb. An EQ pedal set flat with a little more level is the solo boost - switch it on for solos.",
+   "chain": [
+    {"type": "realamp", "params": {"channel": 2, "gain": 4.5, "bass": 4.5, "mid": 4.5, "treble": 7, "presence": 5, "master": -0.7}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 12, "release": 90}},
+    {"type": "eq", "bypassed": true, "params": {"level": 4}}
+   ]
+  },
+  {
+   "name": "Dimebagg - Cowboys", "category": "Legends",
+   "description": "Inspired by a legendary groove-metal guitarist: high gain with a smile-shaped EQ (low up, 500-800 Hz down, top up) and a boost in front. Tight gate.",
+   "chain": [
+    {"type": "ts808", "params": {"drive": 0, "tone": 7, "level": 8}},
+    {"type": "realamp", "params": {"channel": 5, "gain": 6, "bass": 6, "mid": 4, "treble": 5.5, "presence": 6, "master": 1.8}},
+    {"type": "eq", "params": {"low": 3, "lomid": -4, "high": 2, "hpf": 50}},
+    {"type": "cabsim", "params": {"cab": 2}},
+    {"type": "gate", "params": {"margin": 15, "release": 50}}
+   ]
+  },
+  {
+   "name": "Angus Jung - Back in Blak", "category": "Legends",
+   "description": "Inspired by a schoolboy-uniform rock legend: no pedals, a Plexi-style amp just past breakup. Turn your guitar volume down for the cleaner parts.",
+   "chain": [
+    {"type": "realamp", "params": {"channel": 1, "gain": 4.5, "bass": 5, "mid": 5.5, "treble": 5.5, "presence": 6, "master": -0.2}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 10, "release": 150}},
+    {"type": "reverb", "params": {"size": 35, "mix": 10}}
+   ]
+  },
+  {
+   "name": "Jimmy Paige - Whole Lotta", "category": "Legends",
+   "description": "Inspired by a 70s hard-rock pioneer: Les Paul into a cranked British amp with a short, wobbly tape-style delay.",
+   "chain": [
+    {"type": "realamp", "params": {"channel": 1, "gain": 5.5, "bass": 5, "mid": 5.5, "treble": 5, "presence": 5, "master": -0.4}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 10, "release": 150}},
+    {"type": "delay", "params": {"time": 260, "fb": 25, "mix": 15, "tone": 2500, "mod": 5}},
+    {"type": "reverb", "params": {"size": 40, "mix": 14}}
+   ]
+  },
+  {
+   "name": "Claptone - Woman Tone", "category": "Legends",
+   "description": "Inspired by the late-60s 'woman tone': neck humbucker with the tone rolled off into a cranked British amp. The EQ does the roll-off, so it works with any guitar.",
+   "chain": [
+    {"type": "realamp", "params": {"channel": 2, "gain": 5.5, "bass": 5.5, "mid": 6, "treble": 4, "presence": 4, "master": 0.5}},
+    {"type": "eq", "params": {"lpf": 2200, "lomid": 2}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 9, "release": 300}},
+    {"type": "reverb", "params": {"size": 40, "mix": 12}}
+   ]
+  },
+  {
+   "name": "Erik Jonson - Violin Lead", "category": "Legends",
+   "description": "Inspired by a Texan tone perfectionist: a Green Screamer into a British crunch plus long, warm echoes - smooth and vocal.",
+   "chain": [
+    {"type": "ts808", "params": {"drive": 4, "tone": 4, "level": 3}},
+    {"type": "realamp", "params": {"channel": 1, "gain": 4.5, "bass": 5, "mid": 5.5, "treble": 5, "presence": 5, "master": -3.1}},
+    {"type": "eq", "params": {"lpf": 6500}},
+    {"type": "cabsim", "params": {"cab": 3}},
+    {"type": "gate", "params": {"margin": 8, "release": 400}},
+    {"type": "delay", "params": {"time": 380, "fb": 30, "mix": 22, "tone": 3000}},
+    {"type": "reverb", "params": {"size": 55, "mix": 18}}
+   ]
+  },
+  {
+   "name": "Kurt Kobane - Teen Spirits", "category": "Legends",
+   "description": "Inspired by early-90s grunge: chorus/distortion switching - a Baby DS-1 into a clean amp, with chorus for the verses (switch the DS-1 off and the chorus on).",
+   "chain": [
+    {"type": "ds1", "params": {"dist": 6.5, "tone": 4, "level": 0}},
+    {"type": "realamp", "params": {"channel": 0, "gain": 5, "bass": 5.5, "mid": 6, "treble": 5, "presence": 5, "master": -9.5}},
+    {"type": "cabsim", "params": {"cab": 3}},
+    {"type": "gate", "params": {"margin": 11, "release": 150}},
+    {"type": "chorus", "bypassed": true, "params": {"rate": 1, "depth": 6, "mix": 45}},
+    {"type": "reverb", "params": {"size": 30, "mix": 8}}
+   ]
+  },
+  {
+   "name": "Linkin Bark - Hybrid Wall", "category": "Nu-Metal",
+   "description": "Inspired by early-2000s nu-metal walls of guitar: a boosted high-gain head into a big 4x12, tight gate. Play drop-tuned or a 7-string.",
+   "chain": [
+    {"type": "ts808", "params": {"drive": 0, "tone": 6, "level": 7}},
+    {"type": "realamp", "params": {"channel": 5, "gain": 5.5, "bass": 6, "mid": 4.5, "treble": 5, "presence": 5.5, "master": 0.3}},
+    {"type": "cabsim", "params": {"cab": 0, "thump": 2}},
+    {"type": "gate", "params": {"margin": 15, "release": 50}},
+    {"type": "eq", "params": {"low": 2, "lomid": -3, "hpf": 45}}
+   ]
+  },
+  {
+   "name": "Limp Biscuit - Bounce Riffs", "category": "Nu-Metal",
+   "description": "Inspired by bouncy late-90s nu-metal: drop C, scooped mids, bright top, a Baby SD-1 as the boost.",
+   "chain": [
+    {"type": "sd1", "params": {"drive": 1.5, "tone": 5, "level": 6}},
+    {"type": "realamp", "params": {"channel": 5, "gain": 4.5, "bass": 4.5, "mid": 4, "treble": 6, "presence": 6, "master": 1.6}},
+    {"type": "cabsim", "params": {"cab": 2}},
+    {"type": "gate", "params": {"margin": 15, "release": 50}},
+    {"type": "eq", "params": {"low": 3, "hpf": 40}}
+   ]
+  },
+  {
+   "name": "System of a Crown - Toxic Riffs", "category": "Nu-Metal",
+   "description": "Inspired by Armenian-American alt-metal: mids present rather than scooped, no reverb, a fast gate, drop C.",
+   "chain": [
+    {"type": "realamp", "params": {"channel": 5, "gain": 5, "bass": 5.5, "mid": 5.5, "treble": 5, "presence": 5, "master": -0.2}},
+    {"type": "cabsim", "params": {"cab": 1}},
+    {"type": "gate", "params": {"margin": 14, "release": 60}}
+   ]
+  },
+  {
+   "name": "Kornn - Freak Riffs", "category": "Nu-Metal",
+   "description": "Inspired by 7-string nu-metal pioneers: a Baby MT-2 stacked into the high-gain head, very low tuning, scooped and heavy.",
+   "chain": [
+    {"type": "mt2", "params": {"dist": 3, "tone": 4, "level": 4}},
+    {"type": "realamp", "params": {"channel": 5, "gain": 4.5, "bass": 6, "mid": 4, "treble": 5, "presence": 5, "master": -1}},
+    {"type": "cabsim", "params": {"cab": 0, "thump": 2}},
+    {"type": "gate", "params": {"margin": 15, "release": 50}},
+    {"type": "eq", "params": {"lomid": -4, "hpf": 40}}
+   ]
+  },
+  {
+   "name": "Dotted Eighths", "category": "Ambient & FX",
+   "description": "Inspired by a famous Irish delay-driven guitarist: a chimey AC amp into two delays - 350 ms (dotted eighth at ~129 BPM) and 525 ms - with only 1-2 repeats.",
+   "chain": [
+    {"type": "tubeamp", "params": {"channel": 3, "gain": 5, "bass": 4, "mid": 6, "treble": 7, "presence": 6, "master": -0.2}},
+    {"type": "cabsim", "params": {"cab": 3}},
+    {"type": "gate", "params": {"margin": 9, "release": 200}},
+    {"type": "delay", "params": {"time": 350, "fb": 18, "mix": 40, "tone": 4000, "mod": 2}},
+    {"type": "delay", "params": {"time": 525, "fb": 10, "mix": 25, "tone": 3500, "mod": 1}},
+    {"type": "reverb", "params": {"size": 45, "mix": 15}}
+   ]
+  },
+  {
+   "name": "Ambient Swells", "category": "Ambient & FX",
+   "description": "Volume-swell pad: compressor, chorus, long ping-pong delay and a huge reverb.",
+   "chain": [
+    {"type": "comp", "params": {"thresh": -30, "attack": 20}},
+    {"type": "tubeamp", "params": {"channel": 0, "gain": 5, "treble": 6, "master": -0.9}},
+    {"type": "cabsim", "params": {"cab": 4}},
+    {"type": "gate", "params": {"margin": 9, "release": 300}},
+    {"type": "chorus", "params": {"rate": 0.3, "depth": 6, "mix": 45}},
+    {"type": "delay", "params": {"time": 620, "fb": 60, "mix": 40, "mod": 5, "pingpong": 1}},
+    {"type": "reverb", "params": {"size": 92, "mix": 55, "damp": 35, "predelay": 60}}
+   ]
+  },
+  {
+   "name": "Shoegaze Wash", "category": "Ambient & FX",
+   "description": "The Little Big Fluff into chorus, long modulated delay and a big hall - a wall of sound.",
+   "chain": [
+    {"type": "muff", "params": {"sustain": 6, "tone": 3, "level": 0}},
+    {"type": "tubeamp", "params": {"channel": 0, "gain": 5, "bass": 5, "mid": 5, "treble": 6, "presence": 5, "master": -2}},
+    {"type": "cabsim", "params": {"cab": 3}},
+    {"type": "chorus", "params": {"rate": 0.4, "depth": 8, "mix": 50}},
+    {"type": "delay", "params": {"time": 480, "fb": 55, "mix": 35, "mod": 6, "pingpong": 1}},
+    {"type": "reverb", "params": {"size": 95, "mix": 50, "damp": 30}}
+   ]
+  },
+  {
+   "name": "Slow Phase Clean", "category": "Ambient & FX",
+   "description": "Clean amp with a slow, deep phaser and a spacious reverb.",
+   "chain": [
+    {"type": "tubeamp", "params": {"channel": 0, "gain": 5, "bass": 5, "mid": 5, "treble": 6, "presence": 5, "master": 2.6}},
+    {"type": "cabsim", "params": {"cab": 3}},
+    {"type": "gate", "params": {"margin": 9, "release": 250}},
+    {"type": "phaser", "params": {"rate": 0.2, "depth": 8, "fb": 40, "stages": 1, "mix": 50}},
+    {"type": "reverb", "params": {"size": 65, "mix": 25}}
+   ]
+  },
+  {
+   "name": "NAM Rig (load your captures)", "category": "Utility",
+   "description": "Empty NAM Capture and IR Loader slots - load a .nam capture and a cabinet IR.",
+   "chain": [
+    {"type": "boost", "bypassed": true, "params": {"gain": 6}},
+    {"type": "nam", "params": {}},
+    {"type": "ir", "params": {}},
+    {"type": "gate", "params": {}},
+    {"type": "delay", "bypassed": true, "params": {"mix": 18}},
+    {"type": "reverb", "params": {"mix": 15}}
+   ]
+  },
+  {
+   "name": "Empty Board", "category": "Utility",
+   "description": "Nothing on the board - build your own rig.",
+   "chain": [
+   ]
+  }
+ ]
+}
