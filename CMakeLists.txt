@@ -75,10 +75,11 @@ endif()
 if(TONEICAL_JUCE_DIR)
     add_subdirectory(${TONEICAL_JUCE_DIR} ${CMAKE_BINARY_DIR}/JUCE EXCLUDE_FROM_ALL)
 else()
+    # pinned: the version Toneical is tested with. Archives (not git) so no Git is needed to build.
     FetchContent_Declare(JUCE
-        GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
-        GIT_TAG        9.0.4               # pinned: the version Toneical is tested with
-        GIT_SHALLOW    TRUE)
+        URL      https://github.com/juce-framework/JUCE/archive/refs/tags/9.0.4.tar.gz
+        URL_HASH SHA256=e2bee25d5c776118aea550ad168a3dc9520c0669a79bd9f5a72b9f404ee1c40a
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
     FetchContent_MakeAvailable(JUCE)
 endif()
 
@@ -86,9 +87,9 @@ endif()
 if(NOT TONEICAL_EIGEN_DIR)
     # SOURCE_SUBDIR points nowhere on purpose: download only, don't add Eigen's own build
     FetchContent_Declare(eigen
-        GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-        GIT_TAG        3.4.0
-        GIT_SHALLOW    TRUE
+        URL      https://gitlab.com/libeigen/eigen/-/archive/3.4.0/eigen-3.4.0.tar.gz
+        URL_HASH SHA256=8586084f71f9bde545ee7fa6d00288b264a2b7ac3607b974e54d13e7162c1c72
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
         SOURCE_SUBDIR  do-not-build)
     FetchContent_MakeAvailable(eigen)
     set(TONEICAL_EIGEN_DIR ${eigen_SOURCE_DIR})
@@ -96,11 +97,10 @@ endif()
 
 # --- NeuralAmpModelerCore (MIT) --------------------------------------------
 if(NOT TONEICAL_NAM_DIR)
-    FetchContent_Declare(namcore
-        GIT_REPOSITORY https://github.com/sdatkinson/NeuralAmpModelerCore.git
-        GIT_TAG        v0.6.0              # pinned
-        GIT_SHALLOW    TRUE
-        GIT_SUBMODULES ""            # we fetch Eigen ourselves; nlohmann/json is vendored
+    FetchContent_Declare(namcore           # we fetch Eigen ourselves; nlohmann/json is vendored
+        URL      https://github.com/sdatkinson/NeuralAmpModelerCore/archive/refs/tags/v0.6.0.tar.gz
+        URL_HASH SHA256=d55f3c49278a06e5bf5978ea60ae8384603b843d7fdee22a0e9ba71c95108450
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
         SOURCE_SUBDIR  do-not-build)
     FetchContent_MakeAvailable(namcore)
     set(TONEICAL_NAM_DIR ${namcore_SOURCE_DIR})

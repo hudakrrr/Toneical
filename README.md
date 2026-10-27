@@ -95,20 +95,19 @@ the factory presets, and an uninstaller. It needs no Visual C++ redistributable.
 build has ASIO, or **Windows Audio (Low Latency Mode / Exclusive Mode)**, then a 64-128 sample buffer.
 For MP3 export, install ffmpeg (`winget install ffmpeg`) or put `lame.exe` next to `Toneical.exe`.
 
-**Build the installer yourself** on a Windows PC: double-click **`build-windows.bat`**. You need
-neither Visual Studio nor .NET. The script checks what's missing (Microsoft's free command-line C++
-compiler "Build Tools for Visual Studio", CMake, Git, Inno Setup), asks once, installs it with
-`winget`, then builds and opens the `dist` folder with `Toneical-<version>-Windows-x64-Setup.exe`.
-The first run downloads about 3 GB of compiler tools plus JUCE, so it takes a while; later builds
-are quick. Options are passed on: `build-windows.bat -Test`, `build-windows.bat -AsioSdk C:\asiosdk`.
+**Build it yourself** on a Windows 10/11 PC: double-click **`build-windows.bat`**. Nothing needs
+to be installed first: no Visual Studio, no Git, no admin rights. The first run downloads
+portable build tools into `C:\ToneicalBuild` (Microsoft's C++ compiler and Windows SDK, about 1 GB:
+press **Y** to accept Microsoft's licence when asked; plus CMake, Ninja and Inno Setup). Then it
+builds, and the `dist` folder opens with:
 
-Or call the PowerShell script directly, if the tools are already installed:
+* `Toneical-<version>-Windows-x64-Setup.exe`: the installer
+* `Toneical-<version>-Windows-x64-portable.zip`: the app and the VST3 plugin, without installing
 
-```powershell
-packaging\windows\build.ps1                       # -> dist\Toneical-<version>-Windows-x64-Setup.exe
-packaging\windows\build.ps1 -AsioSdk C:\asiosdk   # with ASIO drivers (Steinberg ASIO SDK)
-packaging\windows\build.ps1 -Test                 # also run the offline render test
-```
+The first build takes a while; later ones reuse the tools and only recompile what changed. If
+something fails, the window says what went wrong, and running the `.bat` again continues where it
+stopped. `build-windows.bat -Clean` rebuilds from scratch; `build-windows.bat -AsioSdk C:\asiosdk`
+adds ASIO drivers. To remove the build tools, delete `C:\ToneicalBuild`.
 
 Every push also builds the installer on GitHub Actions: download it from the run's
 *Toneical-Windows-x64-Setup* artifact. To include ASIO there, set the repository variable
