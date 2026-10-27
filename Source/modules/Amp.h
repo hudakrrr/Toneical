@@ -257,36 +257,60 @@ protected:
     void prepareDsp (double sampleRate, int maxBlockSize) override
     {
         conv.prepare ({ sampleRate, (juce::uint32) maxBlockSize, 2 });
-        lastB = lastT = -100.0f;
+        lastB = lastT = -100.0f; lastCab = -1;
     }
     void resetDsp() noexcept override { conv.reset(); for (auto& ch : f) for (auto& b : ch) b.reset(); }
+
+    // The IRs are close-mic'd, so they carry a proximity-effect resonance at 120-145 Hz of up to
+    // +11 dB over the mids. Single notes sit above it, but a distorted power chord fills that band
+    // (its roots plus the intermodulation products at multiples of root - fifth) and turns to boom.
+    // Each cab gets a cut that puts 70-300 Hz about 3 dB under the mids (roughly how a cab sounds
+    // from the room rather than an inch from the cone), and the Modern 4x12, which barely rolls
+    // off below 60 Hz, a high-pass. Fitted on the IRs' 1/3-octave response; Thump adds lows back.
+    struct LowFix { double hz, q, db, hpHz; };
+    static constexpr LowFix lowFix[5] = { { 124.0, 2.5, -14.9, 75.0 },    // 4x12 Modern
+                                          { 149.0, 2.1, -11.1,  0.0 },    // 4x12 British
+                                          { 136.0, 1.7, -12.4,  0.0 },    // 4x12 Tight
+                                          { 120.0, 2.5,  -5.8,  0.0 },    // Boutique 2x12
+                                          { 128.0, 1.7, -14.5,  0.0 } };  // Small Combo
 
     void processDsp (float* L, float* R, int n, bool& stereo) noexcept override
     {
         const float br = get (1), th = get (2);
-        if (differs (br, lastB) || differs (th, lastT))
+        const int cab = juce::jlimit (0, 4, (int) get (0));
+        if (differs (br, lastB) || differs (th, lastT) || cab != lastCab)
         {
-            for (auto& ch : f) { ch[0].highShelf (sr, 3000.0, br, 0.7); ch[1].peak (sr, 110.0, 1.0, th); }
-            lastB = br; lastT = th;
+            const auto& lf = lowFix[cab];
+            for (auto& ch : f)
+            {
+                ch[0].highShelf (sr, 3000.0, br, 0.7);
+                ch[1].peak (sr, 110.0, 1.0, th);
+                ch[2].peak (sr, lf.hz, lf.q, lf.db);
+                if (lf.hpHz > 0.0) ch[3].highPass (sr, lf.hpHz, 0.7071);
+                else               ch[3] = Biquad();
+            }
+            lastB = br; lastT = th; lastCab = cab;
         }
         float* chans[2] = { L, R };
         juce::dsp::AudioBlock<float> block (chans, stereo ? 2u : 1u, (size_t) n);
         conv.process (juce::dsp::ProcessContextReplacing<float> (block));
 
         // normalised IRs are quiet (+6 dB), plus a per-cabinet trim so all cabinets are equally loud
-        static const float cabTrimDb[5] = { 0.0f, 0.7f, -1.0f, 0.9f, -0.9f };
-        const float g = dbToGain (get (3) + cabTrimDb[juce::jlimit (0, 4, (int) get (0))]) * 2.0f;
+        // (the low-end fix is level-matched on single notes: power chords get quieter, by design)
+        static const float cabTrimDb[5] = { 0.3f, 0.9f, -0.6f, 1.0f, -0.4f };
+        const float g = dbToGain (get (3) + cabTrimDb[cab]) * 2.0f;
         forEachActiveChannel (L, R, n, stereo, [&] (int c, float* x, int len)
         {
             for (int i = 0; i < len; ++i)
-                x[i] = f[c][1].process (f[c][0].process (x[i])) * g;
+                x[i] = f[c][3].process (f[c][2].process (f[c][1].process (f[c][0].process (x[i])))) * g;
         });
     }
 
 private:
     juce::dsp::Convolution conv;
-    Biquad f[2][2];
+    Biquad f[2][4];
     float lastB = -100, lastT = -100;
+    int lastCab = -1;
 };
 
 //==============================================================================

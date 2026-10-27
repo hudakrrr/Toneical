@@ -342,10 +342,11 @@ The **Record** view is a small multitrack editor:
   opus, wma and the sound of video files. A box with a progress bar shows where each file will
   land while it loads; files are resampled to the session rate. A new project starts with one track.
 * **Editing**: drag on a track to select a time range (across several tracks), drag a clip by its
-  title bar to move it (also to another track), drag its edges to trim it. `S` (or the Split tool)
-  splits at the selection edges or the playhead, `Del` deletes the selection or the clicked clip,
-  double-click selects a whole clip, Ctrl+Z / Ctrl+Shift+Z undo / redo. Drag in the ruler to set
-  the loop range. `Snap` locks edits to the beat grid.
+  title bar to move it (also to another track), drag its edges to trim it. `Split` (or `S`) cuts
+  at the red playhead (at the selection edges when a time range is selected), `Del` deletes the
+  selection or the clicked clip, double-clicking inside a selected range deletes it too,
+  double-click a clip to select all of it, Ctrl+Z / Ctrl+Shift+Z undo / redo. Drag the playhead's red triangle to move it, drag elsewhere in the ruler to set the loop
+  range, double-click it to remove it. `Snap` locks edits to the beat grid. `+ Add track` under the tracks adds an empty one.
 * **Zoom**: Ctrl + wheel, `+` / `-`, the zoom slider, or `F` / `Fit` for the whole song. Alt + wheel
   (or the second slider) changes the track height. Shift + wheel scrolls sideways.
 * **Projects**: `Save` creates a folder, `~/Toneical/Projects/<name>/`, holding `<name>.toneproj` (XML:

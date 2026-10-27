@@ -224,8 +224,10 @@ private:
 };
 
 //==============================================================================
-// Bars & beats. Click: move the playhead; drag: set the loop range.
-class TrackView::Ruler final : public juce::Component
+// Bars & beats. Click: move the playhead; drag the red triangle: scrub the playhead;
+// drag anywhere else: set the loop range; double-click it: remove it.
+class TrackView::Ruler final : public juce::Component,
+                               private juce::Timer
 {
 public:
     explicit Ruler (TrackView& o) : owner (o) { setMouseCursor (juce::MouseCursor::PointingHandCursor); }
@@ -285,14 +287,26 @@ public:
         g.fillRect (0.0f, r.getHeight() - 1.0f, r.getWidth(), 1.0f);
     }
 
+    void mouseMove (const juce::MouseEvent& e) override
+    {
+        setMouseCursor (onTriangle (e) ? juce::MouseCursor::LeftRightResizeCursor : juce::MouseCursor::PointingHandCursor);
+    }
+
     void mouseDown (const juce::MouseEvent& e) override
     {
         owner.grabKeyboardFocus();
         downTime = owner.snapTime (owner.xToTime (e.x));
+        draggingPlayhead = onTriangle (e) && ! owner.session.isRecording();
     }
 
     void mouseDrag (const juce::MouseEvent& e) override
     {
+        if (draggingPlayhead)
+        {
+            owner.session.setPosition (owner.snapTime (std::max<juce::int64> (0, owner.xToTime (e.x))));
+            owner.repaint();
+            return;
+        }
         if (e.getDistanceFromDragStart() < 4) return;
         owner.session.setLoopRange (downTime, owner.snapTime (owner.xToTime (e.x)));
         owner.session.setLoop (true);
@@ -301,21 +315,61 @@ public:
 
     void mouseUp (const juce::MouseEvent& e) override
     {
-        if (! e.mouseWasDraggedSinceMouseDown())
-            owner.session.setPosition (owner.snapTime (owner.xToTime (e.x)));
+        if (! draggingPlayhead && ! e.mouseWasDraggedSinceMouseDown() && e.getNumberOfClicks() < 2)
+        {
+            pendingPos = owner.snapTime (owner.xToTime (e.x));
+            // inside the loop range a click may be the start of a double-click (remove the loop):
+            // move the playhead only once it's clear that it wasn't
+            if (insideLoop (e)) startTimer (juce::MouseEvent::getDoubleClickTimeout());
+            else                timerCallback();
+        }
+        draggingPlayhead = false;
+        owner.repaint();
+    }
+
+    // double-click inside the loop range: remove it
+    void mouseDoubleClick (const juce::MouseEvent& e) override
+    {
+        if (! insideLoop (e)) return;
+        stopTimer();   // the first click doesn't move the playhead
+        auto& s = owner.session;
+        s.setLoop (false);
+        s.setLoopRange (0, 0);
         owner.repaint();
     }
 
     void mouseWheelMove (const juce::MouseEvent& e, const juce::MouseWheelDetails& w) override { owner.wheel (w, e, true); }
 
 private:
+    // the red triangle at the bottom of the ruler (a little wider than drawn, easier to grab)
+    bool onTriangle (const juce::MouseEvent& e) const
+    {
+        const double px = owner.timeToX (owner.session.getPosition());
+        return std::abs (e.x - px) <= 8.0 && e.y >= getHeight() - 14;
+    }
+
+    bool insideLoop (const juce::MouseEvent& e) const
+    {
+        const auto& s = owner.session;
+        const auto t = owner.xToTime (e.x);
+        return s.getLoopEnd() > s.getLoopStart() && t >= s.getLoopStart() && t <= s.getLoopEnd();
+    }
+
+    void timerCallback() override
+    {
+        stopTimer();
+        owner.session.setPosition (pendingPos);
+        owner.repaint();
+    }
+
     TrackView& owner;
-    juce::int64 downTime = 0;
+    juce::int64 downTime = 0, pendingPos = 0;
+    bool draggingPlayhead = false;
 };
 
 //==============================================================================
 // The clips. Drag on a track: select a range; drag a clip's title bar: move it;
-// drag a clip's edge: trim it; split tool: click to cut.
+// drag a clip's edge: trim it.
 class TrackView::Lanes final : public juce::Component
 {
 public:
@@ -333,6 +387,7 @@ private:
     enum class Zone { none, body, title, leftEdge, rightEdge };
     struct Hit { int lane = -1, clip = -1; Zone zone = Zone::none; };
     Hit hitAt (juce::Point<int>) const;
+    bool insideSelection (const juce::MouseEvent&) const;
     void drawClip (juce::Graphics&, const Clip&, int laneIndex, juce::Colour, bool selected, float alpha);
     juce::Rectangle<float> clipRect (const Clip& c, int laneIndex) const
     {
@@ -345,6 +400,7 @@ private:
     int dragLane = -1, dragClip = -1, previewLane = -1, anchorLane = -1;
     juce::int64 anchorTime = 0, downTime = 0;
     Clip original, preview;
+    struct { juce::int64 start = 0, end = 0; std::vector<rec::TrackPtr> tracks; } dblSel;
 };
 
 TrackView::Lanes::Hit TrackView::Lanes::hitAt (juce::Point<int> p) const
@@ -430,7 +486,7 @@ void TrackView::Lanes::paint (juce::Graphics& g)
         {
             g.setColour (Colours::dim.withAlpha (0.45f));
             g.setFont (uiFont (13.0f));
-            g.drawText ("Drop audio files here (backing tracks: wav, flac, ogg, mp3, aiff) to add a track",
+            g.drawText ("Drop audio files here to add a track",
                         juce::Rectangle<int> (12, y, getWidth() - 24, std::min (th, 60)), juce::Justification::centredLeft);
         }
     }
@@ -616,7 +672,6 @@ void TrackView::Lanes::paint (juce::Graphics& g)
 
 void TrackView::Lanes::mouseMove (const juce::MouseEvent& e)
 {
-    if (owner.tool == Tool::split) { setMouseCursor (juce::MouseCursor::CrosshairCursor); return; }
     switch (hitAt (e.getPosition()).zone)
     {
         case Zone::leftEdge:
@@ -627,9 +682,21 @@ void TrackView::Lanes::mouseMove (const juce::MouseEvent& e)
     }
 }
 
+bool TrackView::Lanes::insideSelection (const juce::MouseEvent& e) const
+{
+    const auto t = owner.xToTime (e.x);
+    const int lane = owner.laneAt (e.y);
+    return owner.selEnd > owner.selStart && t >= owner.selStart && t < owner.selEnd && lane >= 0
+        && std::find (owner.selTracks.begin(), owner.selTracks.end(), owner.arr[(size_t) lane].track) != owner.selTracks.end();
+}
+
 void TrackView::Lanes::mouseDown (const juce::MouseEvent& e)
 {
     owner.grabKeyboardFocus();
+    // the first click of a double-click clears the range selection: remember it, so the
+    // double-click can still delete it
+    if (insideSelection (e)) dblSel = { owner.selStart, owner.selEnd, owner.selTracks };
+    else if (e.getNumberOfClicks() < 2) dblSel = {};
     drag = Zone::none;
     const auto hit = hitAt (e.getPosition());
     const auto t = owner.xToTime (e.x);
@@ -641,16 +708,6 @@ void TrackView::Lanes::mouseDown (const juce::MouseEvent& e)
         owner.repaint();
         return;
     }
-    if (owner.tool == Tool::split)
-    {
-        if (hit.lane >= 0)
-        {
-            auto copy = owner.arr;
-            if (copy[(size_t) hit.lane].splitAt (owner.snapTime (t))) owner.session.commit (std::move (copy));
-        }
-        return;
-    }
-
     downTime = t;
     dragLane = hit.lane;
     dragClip = hit.clip;
@@ -757,9 +814,31 @@ void TrackView::Lanes::mouseUp (const juce::MouseEvent& e)
 
 void TrackView::Lanes::mouseDoubleClick (const juce::MouseEvent& e)
 {
+    // double-click inside a selected range: delete what's in it
+    if (dblSel.end > dblSel.start)
+    {
+        std::swap (owner.selStart, dblSel.start);
+        std::swap (owner.selEnd, dblSel.end);
+        std::swap (owner.selTracks, dblSel.tracks);
+        const bool inside = insideSelection (e);
+        if (inside)
+        {
+            owner.selClipTrack = nullptr;
+            owner.deleteSelection();
+        }
+        else
+        {
+            std::swap (owner.selStart, dblSel.start);   // not on the old selection: leave things as they are
+            std::swap (owner.selEnd, dblSel.end);
+            std::swap (owner.selTracks, dblSel.tracks);
+        }
+        dblSel = {};
+        if (inside) { owner.repaint(); return; }
+    }
+
     // double-click a clip: select its time range on that track
     const auto hit = hitAt (e.getPosition());
-    if (hit.clip < 0 || owner.tool != Tool::select) return;
+    if (hit.clip < 0) return;
     const auto& c = owner.arr[(size_t) hit.lane].clips[(size_t) hit.clip];
     owner.selStart = c.start;
     owner.selEnd = c.end();
@@ -773,16 +852,9 @@ TrackView::TrackView (ToneicalProcessor& p) : proc (p), session (p.getSession())
 {
     setWantsKeyboardFocus (true);
 
-    selectTool.setTooltip ("Select tool: drag on a track to select a range, drag a clip's title bar to move it, its edges to trim it");
-    splitTool.setTooltip ("Split tool: click on a clip to cut it in two (S splits at the selection / playhead)");
-    for (auto* b : { &selectTool, &splitTool })
-    {
-        b->setRadioGroupId (1);
-        b->setClickingTogglesState (true);
-    }
-    selectTool.setToggleState (true, juce::dontSendNotification);
-    selectTool.onClick = [this] { tool = Tool::select; };
-    splitTool.onClick  = [this] { tool = Tool::split; };
+    splitButton.setTooltip ("Cut the clips under the red playhead in two (S) - on the selected track, or all tracks;\n"
+                            "with a time range selected, cuts at both of its edges");
+    splitButton.onClick = [this] { splitAtSelection(); };
     snapButton.setClickingTogglesState (true);
     snapButton.setToggleState (snap, juce::dontSendNotification);
     snapButton.setTooltip ("Snap to the beat grid");
@@ -807,6 +879,10 @@ TrackView::TrackView (ToneicalProcessor& p) : proc (p), session (p.getSession())
     undoButton.onClick = [this] { session.undo(); };
     redoButton.onClick = [this] { session.redo(); };
     addTrackButton.onClick = [this] { focusTrack = session.addTrack(); };
+    addTrackRowButton.setTooltip ("Add an empty track");
+    addTrackRowButton.onClick = [this] { focusTrack = session.addTrack(); };
+    styleSmallButton (addTrackRowButton);
+    headerHolder.addAndMakeVisible (addTrackRowButton);
     importButton.setTooltip ("Add audio files (backing tracks) - or just drag them onto the tracks");
     importButton.onClick = [this] { importDialog(); };
     exportButton.setTooltip ("Export the mix as WAV or MP3 (Ctrl+E) - what you hear: mute, solo, volume, pan and track tones");
@@ -821,7 +897,7 @@ TrackView::TrackView (ToneicalProcessor& p) : proc (p), session (p.getSession())
     saveAsButton.onClick = [this] { saveProject (true); };
     saveButton.setTooltip ("Save the project (Ctrl+S): tracks, tones and audio go into a project folder");
 
-    for (auto* b : { &selectTool, &splitTool, &snapButton, &zoomOut, &zoomIn, &fitButton, &undoButton, &redoButton,
+    for (auto* b : { &splitButton, &snapButton, &zoomOut, &zoomIn, &fitButton, &undoButton, &redoButton,
                      &addTrackButton, &importButton, &exportButton, &newButton, &openButton, &saveButton, &saveAsButton })
     {
         styleSmallButton (*b);
@@ -978,6 +1054,8 @@ void TrackView::syncHeaders()
         headers[i]->setBounds (0, laneY ((int) i), headerHolder.getWidth(), trackH);
         headers[i]->refresh();
     }
+    addTrackRowButton.setBounds (juce::Rectangle<int> (0, laneY ((int) headers.size()), headerHolder.getWidth(), 40)
+                                     .reduced (10, 6));
 }
 
 //==============================================================================
@@ -1598,8 +1676,7 @@ void TrackView::resized()
     {
         auto t = toolbar.reduced (8, 5);
         auto place = [&t] (juce::Component& c, int w, int gapAfter = 4) { c.setBounds (t.removeFromLeft (w)); t.removeFromLeft (gapAfter); };
-        place (selectTool, 56, 2);
-        place (splitTool, 50, 12);
+        place (splitButton, 50, 12);
         place (snapButton, 48, 12);
         place (zoomOut, 26, 2);
         place (zoomSlider, 80, 2);

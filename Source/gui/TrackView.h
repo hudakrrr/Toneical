@@ -14,10 +14,10 @@ namespace pg
 //
 //   - track headers on the left: name, Record-arm / Mute / Solo, volume, pan and the
 //     track's own tone (any preset, or a copy of the current rig)
-//   - timeline with bars & beats; click to move the playhead, drag in the ruler to set
-//     the loop range
+//   - timeline with bars & beats; click to move the playhead, drag its red triangle to
+//     scrub, drag elsewhere in the ruler to set the loop range
 //   - drag on a track to select a time range (across several tracks), drag a clip by its
-//     title bar to move it, drag its edges to trim it, the scissors tool / S splits
+//     title bar to move it, drag its edges to trim it, Split / S cuts at the playhead
 //   - drop audio files (backing tracks) anywhere on the timeline
 //   - Ctrl + wheel zooms, Alt + wheel changes the track height
 class TrackView final : public juce::Component,
@@ -95,7 +95,6 @@ private:
     double viewStart = 0.0;                         // sample at the left edge
     int scrollY = 0, trackH = 96;
     bool snap = true;
-    enum class Tool { select, split } tool = Tool::select;
 
     // selection: a time range over some tracks, or a single clip
     juce::int64 selStart = 0, selEnd = 0;
@@ -116,11 +115,12 @@ private:
     void prunePending();
 
     // toolbar
-    juce::TextButton selectTool { "Select" }, splitTool { "Split" }, snapButton { "Snap" },
+    juce::TextButton splitButton { "Split" }, snapButton { "Snap" },
                      zoomOut { "-" }, zoomIn { "+" }, fitButton { "Fit" },
                      undoButton { "Undo" }, redoButton { "Redo" }, addTrackButton { "+ Track" }, importButton { "Import..." },
                      exportButton { "Export..." },
-                     newButton { "New" }, openButton { "Open" }, saveButton { "Save" }, saveAsButton { "Save as" };
+                     newButton { "New" }, openButton { "Open" }, saveButton { "Save" }, saveAsButton { "Save as" },
+                     addTrackRowButton { "+ Add track" };   // under the last track header
     juce::Slider zoomSlider { juce::Slider::LinearHorizontal, juce::Slider::NoTextBox },
                  heightSlider { juce::Slider::LinearHorizontal, juce::Slider::NoTextBox };
     juce::Rectangle<int> toolbar, titleArea, cornerArea;
