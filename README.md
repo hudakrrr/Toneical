@@ -9,6 +9,10 @@ It also builds as a **VST3** and **LV2** plugin for Reaper, Ardour, Bitwig, Carl
 guitar ──► interface input ──► [Gate] → [Drive] → [Amp or NAM] → [Cab or IR] → [Mod] → [Delay] → [Reverb] ──► headphones
 ```
 
+![Toneical pedalboard and amp view](docs/screenshots/pedalboard.png)
+
+![Toneical multitrack recorder view](docs/screenshots/recorder.png)
+
 ---
 
 ## 1. Install
