@@ -159,7 +159,7 @@ fi
 # the compiler only redoes what an update really touched. Files that are just data
 # (presets, docs, icons, README) are installed directly and never trigger a build.
 COMPILED=(CMakeLists.txt Source tests assets presets)
-HASHED=(CMakeLists.txt Source tests assets/fonts assets/irs assets/nam)
+HASHED=(CMakeLists.txt Source tests assets/fonts assets/irs assets/nam assets/icon)
 
 sync_sources() { # copy changed files, delete files that disappeared; prints the number changed
     local n=0 rel f

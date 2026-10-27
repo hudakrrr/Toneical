@@ -2,6 +2,7 @@
 // Copyright (C) 2026 hudakrrr and contributors
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+#include <cstdio>
 #include "Presets.h"
 #include "modules/ModuleFactory.h"
 #include "BinaryData.h"
@@ -76,6 +77,11 @@ namespace
             const auto env = juce::SystemStats::getEnvironmentVariable ("TONEICAL_FACTORY", {});
             if (env.isNotEmpty()) candidates.add (juce::File (env));
             candidates.add (homeFolder().getChildFile ("Factory").getChildFile ("factory.json"));
+           #if JUCE_WINDOWS
+            // the Windows installer puts it in C:\ProgramData\Toneical (for the app and the VST3)
+            candidates.add (juce::File::getSpecialLocation (juce::File::commonApplicationDataDirectory)
+                                .getChildFile ("Toneical").getChildFile ("Factory").getChildFile ("factory.json"));
+           #endif
             for (auto& f : candidates)
                 if (f.existsAsFile() && parse (f.loadFileAsString(), f.getFullPathName(), l))
                     return l;
@@ -102,11 +108,16 @@ juce::String factorySource() { return library().source; }
 
 juce::File homeFolder()
 {
-    // The installer puts everything in ~/Toneical; TONEICAL_HOME overrides it.
+    // The installer puts everything in ~/Toneical (Windows: Documents\Toneical);
+    // TONEICAL_HOME overrides it.
     const auto env = juce::SystemStats::getEnvironmentVariable ("TONEICAL_HOME", {});
     if (env.isNotEmpty() && juce::File::isAbsolutePath (env))
         return juce::File (env);
+   #if JUCE_WINDOWS
+    return juce::File::getSpecialLocation (juce::File::userDocumentsDirectory).getChildFile ("Toneical");
+   #else
     return juce::File::getSpecialLocation (juce::File::userHomeDirectory).getChildFile ("Toneical");
+   #endif
 }
 
 juce::File userFolder()

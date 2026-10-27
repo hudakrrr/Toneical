@@ -308,8 +308,14 @@ ToneicalEditor::ToneicalEditor (ToneicalProcessor& p)
         for (int b : { 16, 32, 48, 64, 96, 128, 256, 512 })
             bufferBox.addItem (juce::String (b) + " samples (" + juce::String (b / 48.0, 2) + " ms)", b);
         bufferBox.setTextWhenNothingSelected ("Buffer");
+       #if JUCE_WINDOWS
+        bufferBox.setTooltip ("Buffer size = latency. 32-128 samples feel like a real amp; if you hear crackles, "
+                              "take the next bigger size. Use your interface's ASIO driver (or Windows Audio in "
+                              "exclusive / low latency mode) in Audio... for the lowest latency.");
+       #else
         bufferBox.setTooltip ("Buffer size = latency. 16-64 samples feel like a real amp; if you hear crackles, "
                               "take the next bigger size. With JACK/PipeWire this sets the PipeWire quantum.");
+       #endif
         bufferBox.onChange = [this] { if (bufferBox.getSelectedId() > 0) setBufferSize (bufferBox.getSelectedId()); };
         addAndMakeVisible (bufferBox);
     }
@@ -347,6 +353,24 @@ ToneicalEditor::ToneicalEditor (ToneicalProcessor& p)
     status.setColour (juce::Label::textColourId, Colours::dim);
     addAndMakeVisible (status);
 
+    // recorder: transport bar along the bottom, multitrack view for the Record mode
+    transport = std::make_unique<TransportBar> (proc);
+    transport->onModeChange = [this] (bool rec) { setRecordMode (rec); };
+    addAndMakeVisible (*transport);
+    trackView = std::make_unique<TrackView> (proc);
+    trackView->onStatus = [this] (const juce::String& s) { showMessage (s); };
+    trackView->onEditToneInRig = [this]
+    {
+        setRecordMode (false);
+        showMessage ("Editing the tone of " + trackView->toneEditTrackName() + " - switch back to Record to apply it to the track");
+    };
+    addChildComponent (*trackView);
+    proc.getSession().onMessage = [safe = juce::Component::SafePointer<ToneicalEditor> (this)] (const juce::String& s)
+    {
+        if (safe != nullptr) safe->showMessage (s);
+    };
+    setWantsKeyboardFocus (true);
+
     proc.getChain().addChangeListener (this);
     rebuildChain();
 
@@ -363,6 +387,8 @@ ToneicalEditor::ToneicalEditor (ToneicalProcessor& p)
             if (w > 0 && h > 0) setSize (juce::jmax (kMinWidth, w), juce::jmax (720, h));
         }
     }
+    if (juce::JUCEApplicationBase::getCommandLineParameters().contains ("--record"))
+        setRecordMode (true);
     startTimerHz (30);
 }
 
@@ -377,6 +403,9 @@ ToneicalEditor::~ToneicalEditor()
         p2.start ("pw-metadata -n settings 0 clock.min-quantum " + savedMinQuantum); p2.waitForProcessToFinish (2000);
     }
     proc.getChain().removeChangeListener (this);
+    proc.getSession().onMessage = nullptr;
+    trackView.reset();
+    transport.reset();
     bigPedal.reset();
     strip.reset();
     juce::LookAndFeel::setDefaultLookAndFeel (nullptr);
@@ -563,11 +592,44 @@ void ToneicalEditor::resized()
     layoutHeader (r.removeFromTop (headerH));
 
     status.setBounds (r.removeFromBottom (footerH).reduced (12, 0));
+    transport->setBounds (r.removeFromBottom (TransportBar::height));
+    trackView->setBounds (r);
     browser.setBounds (r.removeFromRight (juce::jlimit (240, 320, getWidth() / 5)));
     stripView.setBounds (r.removeFromBottom (stripH));
     strip->setSize (juce::jmax (strip->preferredWidth(), stripView.getWidth()), stripH - 8);
     stage.setBounds (r);
     layoutStage();
+}
+
+// Rig: the pedalboard. Record: the multitrack recorder. The header (presets, input, tuner,
+// output) and the transport bar stay in both.
+void ToneicalEditor::setRecordMode (bool rec)
+{
+    const bool wasRecord = recordMode;
+    recordMode = rec;
+    transport->setRecordMode (rec);
+    stage.setVisible (! rec);
+    stripView.setVisible (! rec);
+    browser.setVisible (! rec);
+    trackView->setVisible (rec);
+    if (rec && ! wasRecord)
+        trackView->finishToneEdit();   // a track's tone was being edited on the rig
+    presetBox.setText (proc.currentPresetName, juce::dontSendNotification);
+    if (rec) trackView->grabKeyboardFocus();
+    else     grabKeyboardFocus();
+    statusHoldTicks = 0;
+    repaint();
+}
+
+void ToneicalEditor::showMessage (const juce::String& s)
+{
+    status.setText (s, juce::dontSendNotification);
+    statusHoldTicks = 6 * 30;
+}
+
+bool ToneicalEditor::keyPressed (const juce::KeyPress& k)
+{
+    return transport->handleKey (k);
 }
 
 void ToneicalEditor::changeListenerCallback (juce::ChangeBroadcaster*)
@@ -771,13 +833,21 @@ void ToneicalEditor::updateStatus()
         }
         else
             s << "No audio device - click Audio... (top right)";
+        if (auto* dev = dm.getCurrentAudioDevice())
+            proc.getSession().setRecordLatency (dev->getInputLatencyInSamples() + dev->getOutputLatencyInSamples()
+                                                + 2 * dev->getCurrentBufferSizeSamples());
     }
     else
 #endif
     {
         s << juce::String (proc.getCurrentSampleRate() / 1000.0, 1) << " kHz";
     }
-    s << "   |   click a pedal below to edit it, drag gear in from the right";
+    if (recordMode)
+        s << "   |   R record, Space play/stop, drag to select, S split, Del delete, Ctrl+wheel zoom, drop audio files to add backing tracks";
+    else if (trackView->toneEditTrackName().isNotEmpty())
+        s << "   |   editing the tone of " << trackView->toneEditTrackName() << " - switch back to Record to apply it";
+    else
+        s << "   |   click a pedal below to edit it, drag gear in from the right";
     status.setText (s, juce::dontSendNotification);
 }
 

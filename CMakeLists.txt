@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 3.22)
 project(Toneical VERSION 0.1.0 LANGUAGES C CXX)
 
 # ---------------------------------------------------------------------------
-#  Toneical – standalone guitar rig for Linux (JUCE + Neural Amp Modeler)
+#  Toneical – standalone guitar rig for Linux and Windows (JUCE + Neural Amp Modeler)
+#
+#  Windows: build with Visual Studio 2022 (or packaging/windows/build.ps1, which also
+#  makes the installer). Optional ASIO: -DTONEICAL_ASIO_SDK_DIR=C:/path/to/asiosdk
 #
 #  Dependencies are downloaded automatically (FetchContent) unless you point
 #  CMake at local copies:
@@ -21,13 +24,40 @@ endif()
 set(TONEICAL_JUCE_DIR  "" CACHE PATH "Local JUCE checkout (empty = download)")
 set(TONEICAL_NAM_DIR   "" CACHE PATH "Local NeuralAmpModelerCore checkout (empty = download)")
 set(TONEICAL_EIGEN_DIR "" CACHE PATH "Local Eigen checkout (empty = download)")
-set(TONEICAL_FORMATS Standalone VST3 LV2 CACHE STRING "Plugin formats to build")
+if(WIN32)
+    set(TONEICAL_FORMATS Standalone VST3 CACHE STRING "Plugin formats to build")
+else()
+    set(TONEICAL_FORMATS Standalone VST3 LV2 CACHE STRING "Plugin formats to build")
+endif()
 option(TONEICAL_BUILD_TESTS "Build the offline render test" ON)
 option(TONEICAL_MINIMAL_X11 "Build without Xrandr/Xinerama/Xcursor/XInput headers (CI only)" OFF)
-option(TONEICAL_NATIVE "Optimise for this CPU (-march=native)" ON)
+# Linux builds are made on the machine they run on; a Windows installer must run on any x64 CPU.
+if(WIN32)
+    option(TONEICAL_NATIVE "Optimise for this CPU (/arch:AVX2 on MSVC, -march=native elsewhere)" OFF)
+else()
+    option(TONEICAL_NATIVE "Optimise for this CPU (-march=native)" ON)
+endif()
+set(TONEICAL_ASIO_SDK_DIR "" CACHE PATH "Windows: Steinberg ASIO SDK folder - enables ASIO drivers (empty = WASAPI/DirectSound only)")
 option(TONEICAL_LTO "Link-time optimisation (slower builds, slightly smaller/faster binary)" OFF)
 set(TONEICAL_LOGO_FONT "${CMAKE_CURRENT_SOURCE_DIR}/assets/fonts/Arizonia-Regular.ttf" CACHE FILEPATH
     "Font file used for the 'Toneical' logo (e.g. your licensed Cattalague .ttf/.otf)")
+
+# MSVC: link the C++ runtime statically, so Toneical.exe needs no Visual C++ redistributable
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
+# compiler-specific flags used below
+if(MSVC)
+    set(TONEICAL_OPT_FLAGS /O2 /bigobj /utf-8)
+    set(TONEICAL_WARN_FLAGS /utf-8 /bigobj)
+    set(TONEICAL_ARCH_FLAGS /arch:AVX2)
+else()
+    set(TONEICAL_OPT_FLAGS -O3)
+    set(TONEICAL_WARN_FLAGS -Wno-switch-enum)   # "default:" branches in switches over shapes are intentional
+    set(TONEICAL_ARCH_FLAGS -march=native)
+endif()
+if(WIN32)
+    set(TONEICAL_PLATFORM_DEFS _USE_MATH_DEFINES NOMINMAX)   # M_PI on MSVC; no min/max macros from windows.h
+endif()
 
 include(FetchContent)
 # Downloaded dependencies are fetched once; re-configuring an existing build (updates)
@@ -82,11 +112,11 @@ target_include_directories(namcore SYSTEM PUBLIC
     ${TONEICAL_NAM_DIR}
     ${TONEICAL_EIGEN_DIR}
     ${TONEICAL_NAM_DIR}/Dependencies/nlohmann)
-target_compile_definitions(namcore PUBLIC NAM_SAMPLE_FLOAT NAM_ENABLE_A2_FAST)
+target_compile_definitions(namcore PUBLIC NAM_SAMPLE_FLOAT NAM_ENABLE_A2_FAST ${TONEICAL_PLATFORM_DEFS})
 set_target_properties(namcore PROPERTIES POSITION_INDEPENDENT_CODE ON)
-target_compile_options(namcore PRIVATE -O3 -w)
+target_compile_options(namcore PRIVATE ${TONEICAL_OPT_FLAGS} $<IF:$<CXX_COMPILER_ID:MSVC>,/w,-w>)
 if(TONEICAL_NATIVE)
-    target_compile_options(namcore PRIVATE -march=native)
+    target_compile_options(namcore PRIVATE ${TONEICAL_ARCH_FLAGS})
 endif()
 
 # --- Shared DSP / GUI sources -----------------------------------------------
@@ -103,7 +133,10 @@ set(TONEICAL_SOURCES
     Source/gui/PedalComponent.cpp
     Source/gui/ChainStrip.cpp
     Source/gui/GearBrowser.cpp
-    Source/gui/PedalArt.cpp)
+    Source/gui/PedalArt.cpp
+    Source/gui/TransportBar.cpp
+    Source/gui/TrackView.cpp
+    Source/recorder/Session.cpp)
 
 juce_add_plugin(Toneical
     PRODUCT_NAME           "Toneical"
@@ -118,7 +151,9 @@ juce_add_plugin(Toneical
     EDITOR_WANTS_KEYBOARD_FOCUS FALSE
     COPY_PLUGIN_AFTER_BUILD FALSE
     LV2URI                 "https://komoj.hu/toneical"
-    VST3_CATEGORIES        Fx Distortion)
+    VST3_CATEGORIES        Fx Distortion
+    ICON_BIG               "${CMAKE_CURRENT_SOURCE_DIR}/assets/icon/toneical-256.png"
+    ICON_SMALL             "${CMAKE_CURRENT_SOURCE_DIR}/assets/icon/toneical-32.png")
 
 target_sources(Toneical PRIVATE ${TONEICAL_SOURCES})
 
@@ -140,13 +175,27 @@ set(TONEICAL_JUCE_DEFS
     JUCE_USE_CURL=0
     JUCE_VST3_CAN_REPLACE_VST2=0
     JUCE_DISPLAY_SPLASH_SCREEN=0
-    JUCE_ALSA=1
-    JUCE_JACK=1
-    JUCE_MODAL_LOOPS_PERMITTED=0)
+    JUCE_MODAL_LOOPS_PERMITTED=0
+    ${TONEICAL_PLATFORM_DEFS})
+if(WIN32)
+    list(APPEND TONEICAL_JUCE_DEFS JUCE_WASAPI=1 JUCE_DIRECTSOUND=1)
+    if(TONEICAL_ASIO_SDK_DIR)
+        if(NOT EXISTS "${TONEICAL_ASIO_SDK_DIR}/common/iasiodrv.h")
+            message(FATAL_ERROR "TONEICAL_ASIO_SDK_DIR: no common/iasiodrv.h in ${TONEICAL_ASIO_SDK_DIR}")
+        endif()
+        list(APPEND TONEICAL_JUCE_DEFS JUCE_ASIO=1)
+        message(STATUS "Toneical: ASIO enabled (${TONEICAL_ASIO_SDK_DIR})")
+    endif()
+else()
+    list(APPEND TONEICAL_JUCE_DEFS JUCE_ALSA=1 JUCE_JACK=1)
+endif()
 if(TONEICAL_MINIMAL_X11)
     list(APPEND TONEICAL_JUCE_DEFS JUCE_USE_XRANDR=0 JUCE_USE_XINERAMA=0 JUCE_USE_XCURSOR=0 JUCE_USE_XINPUT=0)
 endif()
 target_compile_definitions(Toneical PUBLIC ${TONEICAL_JUCE_DEFS})
+if(WIN32 AND TONEICAL_ASIO_SDK_DIR)
+    target_include_directories(Toneical PRIVATE "${TONEICAL_ASIO_SDK_DIR}/common")
+endif()
 
 target_link_libraries(Toneical
     PRIVATE
@@ -161,9 +210,9 @@ if(TONEICAL_LTO)
     target_link_libraries(Toneical PUBLIC juce::juce_recommended_lto_flags)
 endif()
 
-target_compile_options(Toneical PRIVATE -Wno-switch-enum)   # "default:" branches in switches over shapes are intentional
+target_compile_options(Toneical PRIVATE ${TONEICAL_WARN_FLAGS})
 if(TONEICAL_NATIVE)
-    target_compile_options(Toneical PRIVATE -march=native)
+    target_compile_options(Toneical PRIVATE ${TONEICAL_ARCH_FLAGS})
 endif()
 
 # --- Offline test: renders a synthetic guitar through every module ----------
@@ -179,7 +228,7 @@ if(TONEICAL_BUILD_TESTS)
         Source/modules/CapturedPedals.cpp
         Source/Presets.cpp)
     target_include_directories(ToneicalRenderTest PRIVATE Source)
-    target_compile_options(ToneicalRenderTest PRIVATE -Wno-switch-enum)
+    target_compile_options(ToneicalRenderTest PRIVATE ${TONEICAL_WARN_FLAGS})
     target_compile_definitions(ToneicalRenderTest PRIVATE ${TONEICAL_JUCE_DEFS} JUCE_STANDALONE_APPLICATION=1)
     target_link_libraries(ToneicalRenderTest PRIVATE
         namcore ToneicalAssets juce::juce_audio_formats juce::juce_dsp juce::juce_audio_utils
@@ -197,7 +246,7 @@ if(TONEICAL_BUILD_TESTS)
         Source/modules/CapturedPedals.cpp
         Source/Presets.cpp)
     target_include_directories(ToneicalRender PRIVATE Source)
-    target_compile_options(ToneicalRender PRIVATE -Wno-switch-enum)
+    target_compile_options(ToneicalRender PRIVATE ${TONEICAL_WARN_FLAGS})
     target_compile_definitions(ToneicalRender PRIVATE ${TONEICAL_JUCE_DEFS} JUCE_STANDALONE_APPLICATION=1 TONEICAL_TUNING=1)
     target_link_libraries(ToneicalRender PRIVATE
         namcore ToneicalAssets juce::juce_audio_formats juce::juce_dsp juce::juce_audio_utils

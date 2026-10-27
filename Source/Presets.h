@@ -23,7 +23,7 @@ const std::vector<FactoryPreset>& factory();
 const juce::StringArray& categories();         // menu order
 juce::String factorySource();                   // where the factory presets were loaded from
 
-juce::File homeFolder();                        // ~/Toneical (or $TONEICAL_HOME)
+juce::File homeFolder();                        // ~/Toneical, Windows: Documents\Toneical (or $TONEICAL_HOME)
 juce::File userFolder();                        // ~/Toneical/Presets (created on demand)
 constexpr const char* fileExtension = ".toneical";
 

@@ -9,6 +9,8 @@
 #include "gui/PedalComponent.h"
 #include "gui/ChainStrip.h"
 #include "gui/GearBrowser.h"
+#include "gui/TransportBar.h"
+#include "gui/TrackView.h"
 
 //==============================================================================
 class LevelMeter final : public juce::Component
@@ -61,8 +63,11 @@ public:
 
     void paint (juce::Graphics&) override;
     void resized() override;
+    bool keyPressed (const juce::KeyPress&) override;
 
 private:
+    void setRecordMode (bool);
+    void showMessage (const juce::String&);
     void changeListenerCallback (juce::ChangeBroadcaster*) override;
     void timerCallback() override;
 
@@ -112,6 +117,11 @@ private:
     juce::Viewport stripView;
     std::unique_ptr<pg::ChainStrip> strip;
     pg::GearBrowser browser;
+
+    // bottom: transport bar (both modes); record mode: the multitrack view instead of the board
+    std::unique_ptr<pg::TransportBar> transport;
+    std::unique_ptr<pg::TrackView> trackView;
+    bool recordMode = false;
 
     // footer
     juce::Label status;

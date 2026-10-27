@@ -14,6 +14,7 @@
 //
 // The input is processed at its own sample rate, mono (first channel).
 
+#include <cstdio>
 #include <juce_audio_formats/juce_audio_formats.h>
 #include <juce_events/juce_events.h>
 #include "Chain.h"

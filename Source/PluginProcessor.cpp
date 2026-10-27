@@ -34,7 +34,7 @@ ToneicalProcessor::ToneicalProcessor()
     tunerMute    = params.getRawParameterValue ("tunermute");
 
     chain.setModules (pg::Presets::factory().front().build());
-    startTimerHz (10);
+    startTimerHz (30);
 }
 
 ToneicalProcessor::~ToneicalProcessor()
@@ -55,6 +55,9 @@ void ToneicalProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     maxBlock = std::max (32, samplesPerBlock);
     workL.assign ((size_t) maxBlock, 0.0f);
     workR.assign ((size_t) maxBlock, 0.0f);
+    workDi.assign ((size_t) maxBlock, 0.0f);
+    workClick.assign ((size_t) maxBlock, 0.0f);
+    session.prepare (sampleRate, maxBlock);
     currentRate.store (sampleRate);
     tuner.prepare (sampleRate);
     chain.prepare (sampleRate, maxBlock);
@@ -68,6 +71,7 @@ void ToneicalProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 void ToneicalProcessor::releaseResources()
 {
     chain.release();
+    session.release();
 }
 
 void ToneicalProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer&)
@@ -118,9 +122,14 @@ void ToneicalProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
         lastInGain = inTarget;
         if (peak > inPeak.load (std::memory_order_relaxed)) inPeak.store (peak, std::memory_order_relaxed);
         tuner.push (L, n);
+        std::copy (L, L + n, workDi.data());   // the clean guitar is what gets recorded
 
-        // ---- the pedalboard ------------------------------------------------------------------
-        chain.process (L, R, n);
+        // ---- the pedalboard, and the recorder's tracks (in parallel) ----------------------------
+        // The metronome comes after the limiter.
+        struct Rig { pg::Chain& chain; float* L; float* R; } rig { chain, L, R };
+        session.process (workDi.data(), L, R, workClick.data(), n,
+                         [] (void* ctx, int off, int len) { auto& r = *static_cast<Rig*> (ctx); r.chain.process (r.L + off, r.R + off, len); },
+                         &rig);
 
         // ---- master volume + limiter ---------------------------------------------------------
         // Ceiling -1 dBFS: a fast peak limiter does the work, a soft clipper catches what's left,
@@ -144,7 +153,8 @@ void ToneicalProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
                 const float a = std::abs (x);
                 return a <= 0.8f ? x : std::copysign (0.8f + 0.2f * std::tanh ((a - 0.8f) / 0.2f), x);
             };
-            L[i] = soft (l); R[i] = soft (r);
+            L[i] = soft (l) + workClick[(size_t) i];
+            R[i] = soft (r) + workClick[(size_t) i];
             opeak = std::max (opeak, std::max (std::abs (L[i]), std::abs (R[i])));
         }
         limiterGrDb.store (juce::Decibels::gainToDecibels (minGain), std::memory_order_relaxed);
@@ -167,6 +177,14 @@ void ToneicalProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
         buffer.clear (ch, 0, total);
 }
 
+void ToneicalProcessor::toggleRecord()
+{
+    if (session.isRecording())
+        session.stopRecording();
+    else
+        session.startRecording (chain.toValueTree(), currentPresetName);
+}
+
 juce::AudioProcessorEditor* ToneicalProcessor::createEditor()
 {
     return new ToneicalEditor (*this);
@@ -176,6 +194,7 @@ void ToneicalProcessor::getStateInformation (juce::MemoryBlock& dest)
 {
     juce::ValueTree root ("ToneicalState");
     root.setProperty ("preset", currentPresetName, nullptr);
+    root.setProperty ("project", session.getProjectFile().getFullPathName(), nullptr);
     root.appendChild (params.copyState(), nullptr);
     root.appendChild (chain.toValueTree(), nullptr);
     if (auto xml = root.createXml())
@@ -194,6 +213,14 @@ void ToneicalProcessor::setStateInformation (const void* data, int size)
     if (p.isValid()) params.replaceState (p);
     auto c = root.getChildWithName ("Chain");
     if (c.isValid()) chain.fromValueTree (c);
+
+    // reopen the last saved recording project
+    const auto project = root.getProperty ("project").toString();
+    if (juce::File::isAbsolutePath (project) && juce::File (project).existsAsFile())
+    {
+        juce::String err;
+        session.loadProject (juce::File (project), err);
+    }
 }
 
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()

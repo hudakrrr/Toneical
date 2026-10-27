@@ -9,11 +9,13 @@
 //
 // usage: ToneicalRenderTest [outputDir] [model.nam ...]
 
+#include <cstdio>
 #include <juce_audio_formats/juce_audio_formats.h>
 #include <juce_events/juce_events.h>
 #include "Chain.h"
 #include "Presets.h"
 #include "modules/ModuleFactory.h"
+#include "dsp/WorkerPool.h"
 #include <random>
 #include <thread>
 
@@ -248,6 +250,87 @@ int main (int argc, char** argv)
         chain.release();
         chain.collectGarbage();
         printf ("3000 edits while processing %ld blocks: OK (no crash)\n", blocks.load());
+    }
+
+    // worker pool: every job of every batch runs exactly once, whatever the timing
+    printf ("\n== worker pool ==\n");
+    {
+        WorkerPool pool;
+        std::vector<std::atomic<int>> hits (64);
+        struct Ctx { std::vector<std::atomic<int>>* hits; } ctx { &hits };
+        std::mt19937 rng (3);
+        bool ok = true;
+        for (int batch = 0; batch < 100000 && ok; ++batch)
+        {
+            const int count = 1 + (int) (rng() % 64);
+            for (auto& h : hits) h.store (0);
+            pool.run (count, [] (void* c, int i) { (*static_cast<Ctx*> (c)->hits)[(size_t) i].fetch_add (1); }, &ctx);
+            for (int i = 0; i < 64 && ok; ++i)
+                if (hits[(size_t) i].load() != (i < count ? 1 : 0))
+                {
+                    ok = false;
+                    printf ("batch %d: %d jobs, job %d ran %d times\n", batch, count, i, hits[(size_t) i].load());
+                }
+        }
+        if (! ok) ++failures;
+        printf ("%d helper threads, 100000 batches: %s\n", pool.getNumHelpers(), ok ? "OK" : "FAILED (a job ran twice or never)");
+    }
+
+    // several tracks' tones at once: parallel must give exactly the serial result, faster
+    printf ("\n== parallel tracks (like the recorder playing 6 tracks with their own rigs) ==\n");
+    {
+        constexpr int numTracks = 6;
+        struct Set
+        {
+            std::vector<std::unique_ptr<Chain>> chains;
+            std::vector<std::vector<float>> l, r;
+            const std::vector<float>* in = nullptr;
+            size_t pos = 0;
+            int n = 0;
+        };
+        auto makeSet = [&]
+        {
+            auto s = std::make_unique<Set>();
+            for (int t = 0; t < numTracks; ++t)
+            {
+                s->chains.push_back (std::make_unique<Chain>());
+                s->chains.back()->prepare (kRate, kBlock);
+                s->chains.back()->setModules (Presets::factory()[(size_t) t % Presets::factory().size()].build());
+                s->l.emplace_back (guitar.size()); s->r.emplace_back (guitar.size());
+            }
+            s->in = &guitar;
+            return s;
+        };
+        auto job = [] (void* c, int t)
+        {
+            auto& s = *static_cast<Set*> (c);
+            float* l = s.l[(size_t) t].data() + s.pos;
+            std::copy_n (s.in->data() + s.pos, s.n, l);
+            s.chains[(size_t) t]->process (l, s.r[(size_t) t].data() + s.pos, s.n);
+        };
+        auto renderAll = [&] (Set& s, WorkerPool& pool)
+        {
+            const auto t0 = juce::Time::getMillisecondCounterHiRes();
+            for (s.pos = 0; s.pos < guitar.size(); s.pos += kBlock)
+            {
+                s.n = (int) std::min<size_t> (kBlock, guitar.size() - s.pos);
+                pool.run (numTracks, job, &s);
+            }
+            return juce::Time::getMillisecondCounterHiRes() - t0;
+        };
+        WorkerPool serialPool (0), parallelPool;
+        auto a = makeSet(), b = makeSet(), c = makeSet();
+        const double tSerial = renderAll (*a, serialPool);
+        renderAll (*c, serialPool);   // control: are these presets deterministic at all?
+        const double tParallel = renderAll (*b, parallelPool);
+        const bool deterministic = a->l == c->l && a->r == c->r;
+        const bool same = a->l == b->l && a->r == b->r;
+        if (deterministic && ! same) ++failures;
+        const double audioMs = 1000.0 * (double) guitar.size() / kRate;
+        printf ("serial:   %7.1f ms for %.0f ms of audio (%5.1f%% of one core's time budget)\n", tSerial, audioMs, 100.0 * tSerial / audioMs);
+        printf ("parallel: %7.1f ms on %d threads  -> %.2fx faster, output %s\n", tParallel, parallelPool.getNumHelpers() + 1,
+                tSerial / std::max (tParallel, 1e-3),
+                ! deterministic ? "not comparable (presets use randomness)" : (same ? "bit-identical" : "DIFFERENT - FAILED"));
     }
 
     printf ("\n%s (%d failures)\n", failures == 0 ? "ALL PASSED" : "FAILURES", failures);

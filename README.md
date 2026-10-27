@@ -1,6 +1,6 @@
 # Toneical 🎸
 
-A standalone guitar rig for Linux: plug your guitar into an audio interface and play
+A standalone guitar rig for Linux and Windows: plug your guitar into an audio interface and play
 through a pedalboard of drives, amps, cabinets and effects, including real-amp
 **Neural Amp Modeler (NAM)** captures and cabinet **impulse responses (IRs)**.
 It also builds as a **VST3** and **LV2** plugin for Reaper, Ardour, Bitwig, Carla...
@@ -83,6 +83,36 @@ toneical --preset "Hot Lead"
 toneical --size 1280x800         # open the window at a given size
 ```
 or just click **Toneical** in the app menu.
+
+### Windows
+
+**Install:** run `Toneical-<version>-Windows-x64-Setup.exe`. It installs the app (Start menu and
+optional desktop icon), the **VST3** plugin into `C:\Program Files\Common Files\VST3` (optional),
+the factory presets, and an uninstaller. It needs no Visual C++ redistributable. Your own files
+(presets, captures, IRs, recording projects) go to `Documents\Toneical`.
+
+**Audio:** click **Audio...**. For a low latency, choose your interface's **ASIO** driver if this
+build has ASIO, or **Windows Audio (Low Latency Mode / Exclusive Mode)**, then a 64-128 sample buffer.
+For MP3 export, install ffmpeg (`winget install ffmpeg`) or put `lame.exe` next to `Toneical.exe`.
+
+**Build the installer yourself** on a Windows PC: double-click **`build-windows.bat`**. You need
+neither Visual Studio nor .NET. The script checks what's missing (Microsoft's free command-line C++
+compiler "Build Tools for Visual Studio", CMake, Git, Inno Setup), asks once, installs it with
+`winget`, then builds and opens the `dist` folder with `Toneical-<version>-Windows-x64-Setup.exe`.
+The first run downloads about 3 GB of compiler tools plus JUCE, so it takes a while; later builds
+are quick. Options are passed on: `build-windows.bat -Test`, `build-windows.bat -AsioSdk C:\asiosdk`.
+
+Or call the PowerShell script directly, if the tools are already installed:
+
+```powershell
+packaging\windows\build.ps1                       # -> dist\Toneical-<version>-Windows-x64-Setup.exe
+packaging\windows\build.ps1 -AsioSdk C:\asiosdk   # with ASIO drivers (Steinberg ASIO SDK)
+packaging\windows\build.ps1 -Test                 # also run the offline render test
+```
+
+Every push also builds the installer on GitHub Actions: download it from the run's
+*Toneical-Windows-x64-Setup* artifact. To include ASIO there, set the repository variable
+`ASIO_SDK_URL` to a zip of the ASIO SDK. Check the licence that comes with the SDK first.
 
 ## 2. First run with the M-Audio M-Track Solo
 
@@ -320,6 +350,45 @@ Knob positions given as clock positions were converted to 0-10 (7 o'clock = 0, 1
   every knob plus the *paths* of the NAM/IR files, so keep your captures in a stable folder.
 * The last board is restored automatically when you start the app.
 
+### Recording (multitrack)
+
+The bar along the bottom works in both views: **Rig / Record** switch, **Record** (R),
+**Play/Stop** (Space), **Back to start** (Home), **Loop** (L), the position display (click it for
+minutes:seconds), **metronome** (C) with volume, **COUNT-IN** (one bar before recording),
+time signature, tempo (drag, or double-click to type) and **TAP** tempo. The metronome also
+runs while the transport is stopped, as a practice click.
+
+The **Record** view is a small multitrack editor:
+
+* **Tracks**: `+ Track`, right-click a header to rename, recolour, move, or delete it. R arms a
+  track for recording, M mutes it, S solos it. Each track has its own volume and pan.
+* **Every track has its own tone.** Your guitar is recorded *clean* (DI), and each track plays it
+  back through its own rig. The button under the track name picks that rig: any factory or user
+  preset, a copy of the current rig, or *Dry* (for backing tracks). *Edit this tone in the rig...*
+  opens it on the pedalboard, and switching back to Record applies your changes. When you record,
+  the track gets the rig you are playing through, so what you heard is what you get.
+* **Backing tracks**: drag audio files onto a track, or below the last one for a new track (or use
+  `Import...`). wav, flac, ogg, mp3 and aiff always work. With ffmpeg installed, so do m4a, aac,
+  opus, wma and the sound of video files. A box with a progress bar shows where each file will
+  land while it loads; files are resampled to the session rate. A new project starts with one track.
+* **Editing**: drag on a track to select a time range (across several tracks), drag a clip by its
+  title bar to move it (also to another track), drag its edges to trim it. `S` (or the Split tool)
+  splits at the selection edges or the playhead, `Del` deletes the selection or the clicked clip,
+  double-click selects a whole clip, Ctrl+Z / Ctrl+Shift+Z undo / redo. Drag in the ruler to set
+  the loop range. `Snap` locks edits to the beat grid.
+* **Zoom**: Ctrl + wheel, `+` / `-`, the zoom slider, or `F` / `Fit` for the whole song. Alt + wheel
+  (or the second slider) changes the track height. Shift + wheel scrolls sideways.
+* **Projects**: `Save` creates a folder, `~/Toneical/Projects/<name>/`, holding `<name>.toneproj` (XML:
+  tracks, tones, clips, tempo) and `audio/` with the takes as 32-bit float WAVs. The standalone app
+  reopens the last saved project. Recordings are written to disk when you save, so save often.
+* **Export** (`Export...`, Ctrl+E): renders the mix as you hear it (mute, solo, volume, pan, each
+  track's tone) to **WAV** (24-bit or 32-bit float) or **MP3** (320 / 192 kbps), the whole song or
+  only the loop range, normalized to -1 dBFS or as mixed. It runs in the background (click again to
+  cancel). MP3 uses the `lame` or `ffmpeg` program, so install one of them
+  (`sudo dnf install lame`, or ffmpeg with libmp3lame).
+* Takes are moved earlier by the interface's reported round-trip latency, so they line up with the
+  backing track.
+
 ## 6. Project layout
 
 ```
@@ -328,6 +397,8 @@ Source/
   PluginEditor.*         header (presets, input, tuner, master), pedalboard, status bar
   Chain.*                ordered module list; lock-free hand-over to the audio thread
   Presets.*              factory boards + .toneical files
+  dsp/WorkerPool.h       realtime job pool: the live rig and the tracks' rigs on several cores
+  recorder/Session.*     multitrack recorder: tracks, clips, transport, metronome, undo, project files
   Tuner.h                YIN pitch detector (de Cheveigné & Kawahara, 2002)
   dsp/DspHelpers.h       biquads, one-poles, delay line, tone stack, waveshapers, fast tanh
   dsp/LstmModel.h        the LSTM network of GuitarML (Proteus) captures
@@ -347,9 +418,13 @@ Source/
     PedalArt.*           enclosure shapes, finishes, knobs, patch cables (shared by all views)
     ChainStrip.*         the pedalboard at the bottom (drag & drop, cables)
     GearBrowser.*        the gear browser on the right
+    TransportBar.*       the bar along the bottom: Rig/Record, transport, time, metronome, tempo
+    TrackView.*          the Record view: track headers, ruler, clips, selection, zoom, drag & drop
     LookAndFeel.h        colours, knob/fader/toggle drawing
 presets/factory.json     the factory presets (data - edit and re-run install.sh, no rebuild)
-tests/RenderTest.cpp     offline test: every pedal & preset, NAM/IR loading, threading stress
+tests/RenderTest.cpp     offline test: every pedal & preset, NAM/IR loading, threading stress, worker pool
+packaging/windows/       Windows installer (Inno Setup script + build.ps1)
+build-windows.bat        Windows: installs the build tools if needed and makes the installer
 tests/RenderCli.cpp      ToneicalRender: run any WAV through presets / pedals / NAM captures
 tools/                   measurement & fitting scripts (analyze, curves, spectra, fit_amp*,
                          chord_metrics, preset_report, level_presets)
@@ -367,6 +442,15 @@ would be an audible click. So when you add/move/remove a pedal, the GUI builds a
 and swaps one atomic pointer. The old list is deleted later, only after the audio thread has
 finished a full block with the new one. NAM models load and pre-warm on a background thread
 and are swapped in the same way.
+
+### Using more than one CPU core
+A single rig is a strict chain (each pedal needs the previous one's output), so it runs on
+one core. But the live rig and every playing recorder track (each with its own rig) don't depend
+on each other. Each audio block they are handed out as jobs to a small pool of realtime helper
+threads (`dsp/WorkerPool.h`), and the audio thread works on its own jobs too. It never waits for
+a helper that hasn't woken up yet, only for jobs already running. The mix export renders the
+tracks in parallel the same way. The render test checks that the parallel result is
+bit-identical to the serial one. Six rigs at once run about 4x faster on 8 threads.
 
 ### Add your own pedal (example: a simple "Octave Down" is ~30 lines)
 1. Subclass `pg::Module` (or `OversampledModule` if it clips) in `Source/modules/`.

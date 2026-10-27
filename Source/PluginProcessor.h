@@ -6,6 +6,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "Chain.h"
 #include "Tuner.h"
+#include "recorder/Session.h"
 
 class ToneicalProcessor final : public juce::AudioProcessor,
                                private juce::Timer
@@ -41,6 +42,8 @@ public:
     // --- app ---------------------------------------------------------------------------
     pg::Chain& getChain() noexcept { return chain; }
     pg::Tuner& getTuner() noexcept { return tuner; }
+    pg::rec::Session& getSession() noexcept { return session; }
+    void toggleRecord();     // record button: start (on the armed track, with the current rig) / punch out
     juce::AudioProcessorValueTreeState& getParams() noexcept { return params; }
 
     double getCurrentSampleRate() const noexcept { return currentRate.load(); }
@@ -64,7 +67,7 @@ public:
     static juce::AudioProcessorValueTreeState::ParameterLayout createLayout();
 
 private:
-    void timerCallback() override { chain.collectGarbage(); }
+    void timerCallback() override { chain.collectGarbage(); session.pump(); }
 
     juce::AudioProcessorValueTreeState params;
     std::atomic<float>* inputSelect = nullptr;
@@ -74,8 +77,9 @@ private:
 
     pg::Chain chain;
     pg::Tuner tuner;
+    pg::rec::Session session;
 
-    std::vector<float> workL, workR;
+    std::vector<float> workL, workR, workDi, workClick;
     int maxBlock = 512;
     float lastInGain = 1, lastOutGain = 1;
 
