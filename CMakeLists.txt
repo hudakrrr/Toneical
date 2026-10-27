@@ -2,10 +2,7 @@ cmake_minimum_required(VERSION 3.22)
 project(Toneical VERSION 0.1.0 LANGUAGES C CXX)
 
 # ---------------------------------------------------------------------------
-#  Toneical – standalone guitar rig for Linux and Windows (JUCE + Neural Amp Modeler)
-#
-#  Windows: build with Visual Studio 2022 (or packaging/windows/build.ps1, which also
-#  makes the installer). Optional ASIO: -DTONEICAL_ASIO_SDK_DIR=C:/path/to/asiosdk
+#  Toneical – standalone guitar rig for Linux (JUCE + Neural Amp Modeler)
 #
 #  Dependencies are downloaded automatically (FetchContent) unless you point
 #  CMake at local copies:

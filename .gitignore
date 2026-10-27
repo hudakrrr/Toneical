@@ -1,7 +1,5 @@
 # build output
 build/
-build-windows/
-dist/
 cmake-build-*/
 .cache/
 compile_commands.json

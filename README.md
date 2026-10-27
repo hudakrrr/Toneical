@@ -1,6 +1,6 @@
 # Toneical 🎸
 
-A standalone guitar rig for Linux and Windows: plug your guitar into an audio interface and play
+A standalone guitar rig for Linux: plug your guitar into an audio interface and play
 through a pedalboard of drives, amps, cabinets and effects, including real-amp
 **Neural Amp Modeler (NAM)** captures and cabinet **impulse responses (IRs)**.
 It also builds as a **VST3** and **LV2** plugin for Reaper, Ardour, Bitwig, Carla...
@@ -83,35 +83,6 @@ toneical --preset "Hot Lead"
 toneical --size 1280x800         # open the window at a given size
 ```
 or just click **Toneical** in the app menu.
-
-### Windows
-
-**Install:** run `Toneical-<version>-Windows-x64-Setup.exe`. It installs the app (Start menu and
-optional desktop icon), the **VST3** plugin into `C:\Program Files\Common Files\VST3` (optional),
-the factory presets, and an uninstaller. It needs no Visual C++ redistributable. Your own files
-(presets, captures, IRs, recording projects) go to `Documents\Toneical`.
-
-**Audio:** click **Audio...**. For a low latency, choose your interface's **ASIO** driver if this
-build has ASIO, or **Windows Audio (Low Latency Mode / Exclusive Mode)**, then a 64-128 sample buffer.
-For MP3 export, install ffmpeg (`winget install ffmpeg`) or put `lame.exe` next to `Toneical.exe`.
-
-**Build it yourself** on a Windows 10/11 PC: double-click **`build-windows.bat`**. Nothing needs
-to be installed first: no Visual Studio, no Git, no admin rights. The first run downloads
-portable build tools into `C:\ToneicalBuild` (Microsoft's C++ compiler and Windows SDK, about 1 GB:
-press **Y** to accept Microsoft's licence when asked; plus CMake, Ninja and Inno Setup). Then it
-builds, and the `dist` folder opens with:
-
-* `Toneical-<version>-Windows-x64-Setup.exe`: the installer
-* `Toneical-<version>-Windows-x64-portable.zip`: the app and the VST3 plugin, without installing
-
-The first build takes a while; later ones reuse the tools and only recompile what changed. If
-something fails, the window says what went wrong, and running the `.bat` again continues where it
-stopped. `build-windows.bat -Clean` rebuilds from scratch; `build-windows.bat -AsioSdk C:\asiosdk`
-adds ASIO drivers. To remove the build tools, delete `C:\ToneicalBuild`.
-
-Every push also builds the installer on GitHub Actions: download it from the run's
-*Toneical-Windows-x64-Setup* artifact. To include ASIO there, set the repository variable
-`ASIO_SDK_URL` to a zip of the ASIO SDK. Check the licence that comes with the SDK first.
 
 ## 2. First run with the M-Audio M-Track Solo
 
@@ -422,8 +393,6 @@ Source/
     LookAndFeel.h        colours, knob/fader/toggle drawing
 presets/factory.json     the factory presets (data - edit and re-run install.sh, no rebuild)
 tests/RenderTest.cpp     offline test: every pedal & preset, NAM/IR loading, threading stress, worker pool
-packaging/windows/       Windows installer (Inno Setup script + build.ps1)
-build-windows.bat        Windows: installs the build tools if needed and makes the installer
 tests/RenderCli.cpp      ToneicalRender: run any WAV through presets / pedals / NAM captures
 tools/                   measurement & fitting scripts (analyze, curves, spectra, fit_amp*,
                          chord_metrics, preset_report, level_presets)
